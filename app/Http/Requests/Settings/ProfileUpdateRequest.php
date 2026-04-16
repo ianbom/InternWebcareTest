@@ -17,6 +17,10 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->profileRules($this->user()->id);
+        return [
+            ...$this->profileRules($this->user()->id),
+            'phone' => ['nullable', 'string', 'max:20'],
+            'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:2048'],
+        ];
     }
 }

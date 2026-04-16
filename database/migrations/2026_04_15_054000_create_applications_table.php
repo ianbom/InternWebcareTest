@@ -22,9 +22,9 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('submitted_at')->nullable();
             $table->decimal('total_score', 5, 2)->nullable();
-            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('reviewed_at')->nullable();
-            $table->text('admin_notes')->nullable();
+            // $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            // $table->timestamp('reviewed_at')->nullable();
+            // $table->text('admin_notes')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
 

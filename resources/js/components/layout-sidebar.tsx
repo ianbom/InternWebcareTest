@@ -3,6 +3,7 @@ import {
     BriefcaseBusiness,
     LayoutGrid,
     Lock,
+    PaperclipIcon,
     UserRound,
     X,
 } from 'lucide-react';
@@ -38,6 +39,12 @@ const sidebarItems: SidebarItem[] = [
         icon: BriefcaseBusiness,
     },
     {
+        title: 'Assesment',
+        href: '/my-assesment',
+        activePaths: ['/my-assesment'],
+        icon: PaperclipIcon,
+    },
+    {
         title: 'Profil',
         href: profileEdit().url,
         activePaths: ['/settings/profile', '/profile'],
@@ -64,7 +71,7 @@ function SidebarBody({ pathname, onNavigate }: SidebarBodyProps) {
                     ))}
                 </div>
                 <span className="text-[24px] font-extrabold tracking-tight text-[#1D449C]">
-                    InternHub
+                    WebcareIntern
                 </span>
             </Link>
 
@@ -110,14 +117,6 @@ function SidebarBody({ pathname, onNavigate }: SidebarBodyProps) {
                 <p className="text-xs leading-4 text-[#EAECEF]">
                     Pantau progres seleksi, selesaikan assessment tepat waktu, dan lengkapi profilmu.
                 </p>
-                <Link
-                    href={positionsIndex()}
-                    onClick={handleNavigate}
-                    className="mt-4 rounded-full bg-[#3D72D1] px-4 py-1.5 text-xs font-semibold text-[#FFFFFF] transition-transform duration-200 hover:translate-y-[-1px] active:translate-y-[1px]"
-                >
-                    Lihat Posisi
-                </Link>
-
                 <div className="pointer-events-none absolute bottom-0 right-0 size-20 translate-x-5 translate-y-5 rounded-full bg-[#3D72D1]/45" />
                 <div className="pointer-events-none absolute bottom-6 right-7 size-5 rounded-full bg-[#FFFFFF]/30" />
             </section>

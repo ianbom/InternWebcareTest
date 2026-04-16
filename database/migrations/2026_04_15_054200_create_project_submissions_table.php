@@ -20,10 +20,11 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->decimal('score', 5, 2)->nullable();
             $table->text('score_notes')->nullable();
-            $table->foreignId('scored_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('scored_at')->nullable();
+            // $table->foreignId('scored_by')->nullable()->constrained('users')->nullOnDelete();
+            // $table->timestamp('scored_at')->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('submitted_at')->nullable();
+            $table->timestamp('deadline_at')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
 

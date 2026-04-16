@@ -17,6 +17,15 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage().props;
+    const currentCvPath =
+        typeof auth.user.cv_path === 'string' ? auth.user.cv_path : null;
+    const currentCvName = currentCvPath?.split('/').pop();
+    const currentCvUrl = currentCvPath
+        ? `/storage/${currentCvPath
+              .split('/')
+              .map((segment) => encodeURIComponent(segment))
+              .join('/')}`
+        : null;
 
     return (
         <>
@@ -28,11 +37,13 @@ export default function Profile({
                 <Heading
                     variant="small"
                     title="Profile information"
-                    description="Update your name and email address"
+                    description="Update your name, email, phone number, and CV"
                 />
 
                 <Form
                     {...ProfileController.update.form()}
+                    method="post"
+                    encType="multipart/form-data"
                     options={{
                         preserveScroll: true,
                     }}
@@ -40,6 +51,8 @@ export default function Profile({
                 >
                     {({ processing, errors }) => (
                         <>
+                            <input type="hidden" name="_method" value="patch" />
+
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
 
@@ -76,6 +89,56 @@ export default function Profile({
                                 <InputError
                                     className="mt-2"
                                     message={errors.email}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="phone">Phone number</Label>
+
+                                <Input
+                                    id="phone"
+                                    type="tel"
+                                    className="mt-1 block w-full"
+                                    defaultValue={auth.user.phone ?? ''}
+                                    name="phone"
+                                    autoComplete="tel"
+                                    placeholder="+628123456789"
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.phone}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="cv">CV</Label>
+
+                                <Input
+                                    id="cv"
+                                    type="file"
+                                    className="mt-1 block w-full"
+                                    name="cv"
+                                    accept=".pdf,.doc,.docx"
+                                />
+
+                                {currentCvUrl && (
+                                    <a
+                                        href={currentCvUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-sm text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current dark:decoration-neutral-500"
+                                    >
+                                        View current CV
+                                        {currentCvName
+                                            ? `: ${currentCvName}`
+                                            : ''}
+                                    </a>
+                                )}
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.cv}
                                 />
                             </div>
 

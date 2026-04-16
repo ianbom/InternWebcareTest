@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
+import AssesmentLayout from '@/layouts/assesment-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
@@ -19,6 +20,8 @@ createInertiaApp({
             case name === 'dashboard':
             case name.startsWith('position/'):
                 return null;
+            case name.startsWith('assesment/'):
+                return AssesmentLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:

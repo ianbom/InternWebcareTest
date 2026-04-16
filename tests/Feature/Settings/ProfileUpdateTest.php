@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
@@ -48,6 +50,38 @@ test('email verification status is unchanged when the email address is unchanged
         ->assertRedirect(route('profile.edit'));
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
+});
+
+test('profile phone and cv can be updated', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create([
+        'cv_path' => 'cvs/old-cv.pdf',
+    ]);
+
+    Storage::disk('public')->put('cvs/old-cv.pdf', 'old cv');
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('profile.update'), [
+            '_method' => 'patch',
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => '+628123456789',
+            'cv' => UploadedFile::fake()->create('resume.pdf', 200),
+        ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('profile.edit'));
+
+    $user->refresh();
+
+    expect($user->phone)->toBe('+628123456789');
+    expect($user->cv_path)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($user->cv_path);
+    Storage::disk('public')->assertMissing('cvs/old-cv.pdf');
 });
 
 test('user can delete their account', function () {

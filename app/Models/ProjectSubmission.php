@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'scored_at',
     'started_at',
     'submitted_at',
+    'deadline_at',
 ])]
 class ProjectSubmission extends Model
 {
@@ -31,6 +32,7 @@ class ProjectSubmission extends Model
             'scored_at' => 'datetime',
             'started_at' => 'datetime',
             'submitted_at' => 'datetime',
+            'deadline_at' => 'datetime'
         ];
     }
 
