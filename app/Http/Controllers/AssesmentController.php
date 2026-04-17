@@ -14,6 +14,7 @@ use App\Models\ProjectTask;
 use App\Models\Question;
 use App\Models\User;
 use App\Services\AssesmentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -194,5 +195,34 @@ class AssesmentController extends Controller
         ]);
 
         return to_route('assessments.index');
+    }
+
+    /**
+     * Log a security warning/violation made by a candidate during an assessment.
+     * Accepts a JSON body: { "action": "tab_switch", "description": "..." }
+     */
+    public function logWarning(Request $request, Application $application): JsonResponse
+    {
+        abort_unless($application->candidate_id === $request->user()?->id, 403);
+
+        if ($application->status !== 'in_progress') {
+            return response()->json(['message' => 'Assessment is not in progress.'], 422);
+        }
+
+        $validated = $request->validate([
+            'action' => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $warning = $this->assesmentService->logWarning(
+            $application,
+            $validated['action'],
+            $validated['description'] ?? null,
+        );
+
+        return response()->json([
+            'message' => 'Warning logged.',
+            'id' => $warning->id,
+        ], 201);
     }
 }

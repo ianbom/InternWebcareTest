@@ -12,7 +12,7 @@ import {
     Timer,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { submit as submitAssessmentRoute } from '@/routes/assessments';
+import { submit as submitAssessmentRoute, warn as warnAssessmentRoute } from '@/routes/assessments';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -155,6 +155,8 @@ export default function TakeAssesment({
     const [securityWarning, setSecurityWarning] = useState<string | null>(null);
     const [securityWarningCount, setSecurityWarningCount] = useState(0);
     const [isRefreshModalOpen, setIsRefreshModalOpen] = useState(false);
+    const [isSubmitConfirmModalOpen, setIsSubmitConfirmModalOpen] = useState(false);
+    const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
     const mcqAnswersRef = useRef(mcqAnswers);
     const essayAnswersRef = useRef(essayAnswers);
     const submittedRef = useRef(false);
@@ -194,6 +196,31 @@ export default function TakeAssesment({
         setSecurityWarning(message);
         setSecurityWarningCount((count) => count + 1);
     }, []);
+
+    /** Fire-and-forget: record the violation in the backend (non-blocking). */
+    const sendWarning = useCallback(
+        (action: string, description?: string) => {
+            if (submittedRef.current) return;
+
+            const warnUrl = warnAssessmentRoute.url(applicationId);
+            const csrfToken = getCsrfToken();
+
+            void fetch(warnUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ action, description: description ?? null }),
+            }).catch(() => {
+                // Silently ignore network errors; warnings are best-effort.
+            });
+        },
+        [applicationId],
+    );
 
     const buildSubmitFormData = useCallback(() => {
         const formData = new FormData();
@@ -254,12 +281,8 @@ export default function TakeAssesment({
                 return;
             }
 
-            if (
-                requireConfirmation &&
-                !confirm(
-                    'Anda yakin ingin mengumpulkan? Jawaban tidak dapat diubah setelah submit.',
-                )
-            ) {
+            if (requireConfirmation) {
+                setIsSubmitConfirmModalOpen(true);
                 return;
             }
 
@@ -314,12 +337,15 @@ export default function TakeAssesment({
     useEffect(() => {
         const blockAction = (event: Event) => {
             event.preventDefault();
+            const actionType = event.type; // 'copy', 'cut', 'paste', 'contextmenu', 'dragstart'
             showSecurityWarning(BLOCKED_ACTION_MESSAGE);
+            sendWarning(actionType, BLOCKED_ACTION_MESSAGE);
         };
         const blockKeyboardShortcut = (event: KeyboardEvent) => {
             if (isRefreshShortcut(event)) {
                 event.preventDefault();
                 requestRefreshSubmit();
+                sendWarning('refresh_attempt', `Keyboard shortcut: ${event.key}`);
 
                 return;
             }
@@ -330,6 +356,7 @@ export default function TakeAssesment({
 
             event.preventDefault();
             showSecurityWarning(BLOCKED_ACTION_MESSAGE);
+            sendWarning('blocked_shortcut', `Key: ${event.key}`);
 
             if (event.key.toLowerCase() === 'printscreen') {
                 void navigator.clipboard?.writeText('');
@@ -338,7 +365,8 @@ export default function TakeAssesment({
         const warnOnVisibilityChange = () => {
             if (document.hidden) {
                 showSecurityWarning(SECURITY_ALERT);
-                window.setTimeout(() => window.alert(SECURITY_ALERT), 0);
+                setIsSecurityModalOpen(true);
+                sendWarning('tab_switch', 'Kandidat berpindah tab atau meminimalkan browser.');
             }
         };
         const submitOnPageHide = () => submitDuringUnload();
@@ -375,7 +403,7 @@ export default function TakeAssesment({
             window.removeEventListener('pagehide', submitOnPageHide);
             window.removeEventListener('beforeunload', warnOnBeforeUnload);
         };
-    }, [requestRefreshSubmit, showSecurityWarning, submitDuringUnload]);
+    }, [requestRefreshSubmit, sendWarning, showSecurityWarning, submitDuringUnload]);
 
     // ── Left sidebar nav items ────────────────────────────────────────────
     const phases: { key: Phase; label: string; icon: typeof ClipboardList }[] =
@@ -406,11 +434,10 @@ export default function TakeAssesment({
                         <div className="flex items-center gap-2 rounded-full bg-[#EEF0F5] px-4 py-1.5">
                             <Timer className="h-4 w-4 text-primary" />
                             <span
-                                className={`font-mono text-base font-bold tracking-tight ${
-                                    secondsLeft < 300
+                                className={`font-mono text-base font-bold tracking-tight ${secondsLeft < 300
                                         ? 'text-red-500'
                                         : 'text-primary'
-                                }`}
+                                    }`}
                             >
                                 {secondsToDisplay(secondsLeft)}
                             </span>
@@ -469,6 +496,83 @@ export default function TakeAssesment({
                     </div>
                 )}
 
+                {isSubmitConfirmModalOpen && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="submit-confirm-title"
+                    >
+                        <div className="w-full max-w-md rounded-3xl border border-blue-100 bg-white p-6 shadow-[0_28px_90px_rgba(15,23,42,0.28)]">
+                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-primary">
+                                <Send className="h-6 w-6" />
+                            </div>
+                            <h2
+                                id="submit-confirm-title"
+                                className="text-2xl font-black tracking-tight text-slate-900"
+                            >
+                                Submit Jawaban
+                            </h2>
+                            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                                Anda yakin ingin mengumpulkan? Jawaban tidak dapat diubah setelah submit.
+                            </p>
+                            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSubmitConfirmModalOpen(false)}
+                                    className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsSubmitConfirmModalOpen(false);
+                                        submitAssessment(false);
+                                    }}
+                                    disabled={isSubmitting}
+                                    className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    {isSubmitting ? 'Mengirim...' : 'Ya, Kumpulkan'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {isSecurityModalOpen && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="security-alert-title"
+                    >
+                        <div className="w-full max-w-md rounded-3xl border border-red-100 bg-white p-6 shadow-[0_28px_90px_rgba(15,23,42,0.28)]">
+                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                                <Lock className="h-6 w-6" />
+                            </div>
+                            <h2
+                                id="security-alert-title"
+                                className="text-2xl font-black tracking-tight text-slate-900"
+                            >
+                                Peringatan Keamanan
+                            </h2>
+                            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                                {SECURITY_ALERT}
+                            </p>
+                            <div className="mt-6 flex flex-col sm:flex-row sm:justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSecurityModalOpen(false)}
+                                    className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-600/20 transition-colors hover:bg-red-700"
+                                >
+                                    Mengerti
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* ── BODY (3-column) ──────────────────────────────────────── */}
                 <div className="flex flex-1 overflow-hidden">
                     {/* ── LEFT SIDEBAR ─────────────────────────── */}
@@ -488,11 +592,10 @@ export default function TakeAssesment({
                                     <button
                                         key={key}
                                         onClick={() => setPhase(key)}
-                                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${
-                                            phase === key
+                                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${phase === key
                                                 ? 'border-l-[3px] border-primary bg-blue-50 text-primary'
                                                 : 'text-gray-500 hover:bg-gray-50 hover:text-primary'
-                                        }`}
+                                            }`}
                                     >
                                         <Icon className="h-4 w-4 shrink-0" />
                                         {label}
@@ -523,9 +626,9 @@ export default function TakeAssesment({
                                                 Math.max(
                                                     1,
                                                     mcqQuestions.length +
-                                                        essayQuestions.length,
+                                                    essayQuestions.length,
                                                 )) *
-                                                100,
+                                            100,
                                         )}%`,
                                     }}
                                 />
@@ -575,20 +678,18 @@ export default function TakeAssesment({
                                                             }),
                                                         )
                                                     }
-                                                    className={`flex w-full items-center justify-between rounded-2xl border-2 p-4 text-left transition-all duration-150 ${
-                                                        selected
+                                                    className={`flex w-full items-center justify-between rounded-2xl border-2 p-4 text-left transition-all duration-150 ${selected
                                                             ? 'border-primary bg-white text-primary shadow-[0_0_0_1px_rgba(29,68,156,0.2)]'
                                                             : 'border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-blue-50/30'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         {/* Radio circle */}
                                                         <div
-                                                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                                                                selected
+                                                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${selected
                                                                     ? 'border-primary bg-primary'
                                                                     : 'border-gray-300 bg-white'
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {selected && (
                                                                 <div className="h-2 w-2 rounded-full bg-white" />
@@ -795,13 +896,12 @@ export default function TakeAssesment({
                                                     setPhase('mcq');
                                                     setMcqIndex(i);
                                                 }}
-                                                className={`flex h-7 w-full items-center justify-center rounded-lg text-xs font-bold transition-all duration-150 ${
-                                                    isCurrent
+                                                className={`flex h-7 w-full items-center justify-center rounded-lg text-xs font-bold transition-all duration-150 ${isCurrent
                                                         ? 'bg-primary text-white ring-2 ring-primary ring-offset-1'
                                                         : answered
-                                                          ? 'bg-primary/80 text-white'
-                                                          : 'border border-gray-200 bg-gray-50 text-gray-500 hover:border-primary/50 hover:text-primary'
-                                                }`}
+                                                            ? 'bg-primary/80 text-white'
+                                                            : 'border border-gray-200 bg-gray-50 text-gray-500 hover:border-primary/50 hover:text-primary'
+                                                    }`}
                                             >
                                                 {i + 1}
                                             </button>
@@ -833,13 +933,12 @@ export default function TakeAssesment({
                                                     setPhase('essay');
                                                     setEssayIndex(i);
                                                 }}
-                                                className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
-                                                    isCurrent
+                                                className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${isCurrent
                                                         ? 'border-primary bg-blue-50 text-primary'
                                                         : answered
-                                                          ? 'border-green-200 bg-green-50 text-green-700'
-                                                          : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-primary/40 hover:text-primary'
-                                                }`}
+                                                            ? 'border-green-200 bg-green-50 text-green-700'
+                                                            : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-primary/40 hover:text-primary'
+                                                    }`}
                                             >
                                                 <span>
                                                     TASK{' '}

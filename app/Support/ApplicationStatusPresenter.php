@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\Application;
+
 class ApplicationStatusPresenter
 {
     public const FINAL_STATUSES = ['approved', 'rejected'];
@@ -16,13 +18,24 @@ class ApplicationStatusPresenter
     public static function label(string $status): string
     {
         return match ($status) {
-            'pending' => 'Menunggu Assessment',
-            'in_progress' => 'Assessment Berjalan',
-            'submitted' => 'Assessment Terkirim',
-            'under_review' => 'Sedang Direview',
+            'pending' => 'Menunggu Quiz',
+            'in_progress' => 'Quiz Berjalan',
+            'submitted' => 'Quiz Terkirim',
+            'under_review' => 'Menunggu Review',
             'approved' => 'Diterima',
             'rejected' => 'Ditolak',
             default => 'Status Tidak Diketahui',
+        };
+    }
+
+    public static function flowLabel(Application $application): string
+    {
+        return match (self::activeStepFor($application)) {
+            'quiz' => self::label($application->status),
+            'project' => 'Project Berjalan',
+            'review' => 'Menunggu Review',
+            'result' => self::label($application->status),
+            default => 'Data Diri',
         };
     }
 
@@ -40,13 +53,24 @@ class ApplicationStatusPresenter
     public static function headline(string $status): string
     {
         return match ($status) {
-            'pending' => 'Assessment siap dimulai.',
-            'in_progress' => 'Assessment sedang berjalan.',
-            'submitted' => 'Assessment berhasil dikirim.',
-            'under_review' => 'Lamaran sedang direview.',
+            'pending' => 'Quiz seleksi siap dimulai.',
+            'in_progress' => 'Quiz seleksi sedang berjalan.',
+            'submitted' => 'Quiz seleksi berhasil dikirim.',
+            'under_review' => 'Lamaran sedang menunggu review.',
             'approved' => 'Selamat, lamaran Anda diterima.',
             'rejected' => 'Lamaran Anda belum diterima.',
             default => 'Pantau status lamaran Anda.',
+        };
+    }
+
+    public static function flowHeadline(Application $application): string
+    {
+        return match (self::activeStepFor($application)) {
+            'quiz' => self::headline($application->status),
+            'project' => 'Tahap project sudah terbuka.',
+            'review' => 'Semua pekerjaan sudah masuk ke tahap review.',
+            'result' => self::headline($application->status),
+            default => 'Lengkapi data diri terlebih dahulu.',
         };
     }
 
@@ -66,6 +90,19 @@ class ApplicationStatusPresenter
         };
     }
 
+    public static function flowGuidance(Application $application, ?string $assessmentTitle = null): string
+    {
+        return match (self::activeStepFor($application)) {
+            'quiz' => self::guidance($application->status, $assessmentTitle),
+            'project' => 'Quiz Anda sudah terkirim. Lanjutkan dengan mengerjakan dan mengunggah project sesuai task yang tersedia.',
+            'review' => self::hasProjectTasks($application)
+                ? 'Quiz dan project Anda sudah dikirim. Tim reviewer akan menilai hasil pekerjaan Anda sebelum menentukan hasil akhir.'
+                : 'Quiz Anda sudah dikirim. Tim reviewer akan menilai hasil Anda sebelum menentukan hasil akhir.',
+            'result' => self::guidance($application->status, $assessmentTitle),
+            default => 'Lengkapi profil, CV, dan data kontak sebelum melamar posisi.',
+        };
+    }
+
     public static function activeStep(string $status): string
     {
         return match ($status) {
@@ -73,6 +110,59 @@ class ApplicationStatusPresenter
             'approved', 'rejected' => 'result',
             default => 'assessment',
         };
+    }
+
+    public static function activeStepFor(Application $application): string
+    {
+        if (self::isFinal($application->status)) {
+            return 'result';
+        }
+
+        if (in_array($application->status, ['pending', 'in_progress'], true)) {
+            return 'quiz';
+        }
+
+        if ($application->status === 'submitted') {
+            if (self::hasProjectTasks($application) && ! self::areProjectSubmissionsComplete($application)) {
+                return 'project';
+            }
+
+            return 'review';
+        }
+
+        if ($application->status === 'under_review') {
+            return 'review';
+        }
+
+        return 'profile';
+    }
+
+    public static function hasProjectTasks(Application $application): bool
+    {
+        if ($application->relationLoaded('assessment') && $application->assessment?->relationLoaded('projectTasks')) {
+            return $application->assessment->projectTasks->isNotEmpty();
+        }
+
+        return $application->assessment?->projectTasks()->exists() ?? false;
+    }
+
+    public static function areProjectSubmissionsComplete(Application $application): bool
+    {
+        if (! self::hasProjectTasks($application)) {
+            return false;
+        }
+
+        $projectTasksCount = $application->assessment?->projectTasks?->count() ?? 0;
+
+        if (! $application->relationLoaded('projectSubmissions')) {
+            $application->loadMissing('projectSubmissions');
+        }
+
+        return $projectTasksCount > 0
+            && $application->projectSubmissions->count() >= $projectTasksCount
+            && $application->projectSubmissions->every(
+                fn ($submission): bool => in_array($submission->status, ['submitted', 'reviewed'], true),
+            );
     }
 
     public static function isFinal(string $status): bool

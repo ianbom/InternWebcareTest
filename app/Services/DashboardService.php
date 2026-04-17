@@ -16,6 +16,8 @@ class DashboardService
             ->with([
                 'position:id,title',
                 'assessment:id,title,duration_minutes',
+                'assessment.projectTasks:id,assessment_id,title',
+                'projectSubmissions:id,application_id,project_task_id,status',
             ])
             ->latest()
             ->first();
@@ -70,6 +72,8 @@ class DashboardService
      *     statusLabel: string,
      *     statusTone: string,
      *     activeStep: string,
+     *     hasProjectTasks: bool,
+     *     areProjectSubmissionsComplete: bool,
      *     headline: string,
      *     nextActionLabel: ?string,
      *     nextActionUrl: ?string,
@@ -86,24 +90,27 @@ class DashboardService
             'positionTitle' => $application->position->title,
             'appliedAt' => $application->created_at?->format('d M Y'),
             'status' => $status,
-            'statusLabel' => ApplicationStatusPresenter::label($status),
+            'statusLabel' => ApplicationStatusPresenter::flowLabel($application),
             'statusTone' => ApplicationStatusPresenter::tone($status),
-            'activeStep' => ApplicationStatusPresenter::activeStep($status),
-            'headline' => ApplicationStatusPresenter::headline($status),
+            'activeStep' => ApplicationStatusPresenter::activeStepFor($application),
+            'hasProjectTasks' => ApplicationStatusPresenter::hasProjectTasks($application),
+            'areProjectSubmissionsComplete' => ApplicationStatusPresenter::areProjectSubmissionsComplete($application),
+            'headline' => ApplicationStatusPresenter::flowHeadline($application),
             'nextActionLabel' => $this->resolveActionLabel($status),
             'nextActionUrl' => $this->resolveActionUrl($application),
             'nextActionMethod' => $this->resolveActionMethod($status),
             'canOpenAssessment' => ! ApplicationStatusPresenter::isFinal($status),
-            'guidance' => ApplicationStatusPresenter::guidance($status, $application->assessment->title),
+            'guidance' => ApplicationStatusPresenter::flowGuidance($application, $application->assessment->title),
         ];
     }
 
     private function resolveActionLabel(string $status): ?string
     {
         return match ($status) {
-            'pending' => 'Mulai Assessment',
-            'in_progress' => 'Lanjutkan Assessment',
-            'submitted', 'under_review' => 'Lihat Status Assessment',
+            'pending' => 'Mulai Quiz',
+            'in_progress' => 'Lanjutkan Quiz',
+            'submitted' => 'Lihat Tahap Berikutnya',
+            'under_review' => 'Lihat Status Review',
             'approved', 'rejected' => null,
             default => null,
         };

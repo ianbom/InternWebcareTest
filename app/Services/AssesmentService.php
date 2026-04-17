@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Answer;
 use App\Models\Application;
+use App\Models\AssesmentWarning;
 use App\Models\Assessment;
 use App\Models\Position;
 use App\Models\ProjectTask;
@@ -220,18 +221,23 @@ class AssesmentService
         $status = $application->status;
         $isFinalStatus = ApplicationStatusPresenter::isFinal($status);
         $isAssessmentVisible = ApplicationStatusPresenter::isAssessmentVisible($status);
+        $hasProjectTasks = ApplicationStatusPresenter::hasProjectTasks($application);
+        $areProjectSubmissionsComplete = ApplicationStatusPresenter::areProjectSubmissionsComplete($application);
 
         return [
             'hasApplication' => true,
             'application' => [
                 'id' => $application->id,
                 'status' => $status,
-                'statusLabel' => ApplicationStatusPresenter::label($status),
+                'statusLabel' => ApplicationStatusPresenter::flowLabel($application),
                 'statusTone' => ApplicationStatusPresenter::tone($status),
-                'headline' => ApplicationStatusPresenter::headline($status),
-                'guidance' => ApplicationStatusPresenter::guidance($status, $application->assessment->title),
+                'activeStep' => ApplicationStatusPresenter::activeStepFor($application),
+                'headline' => ApplicationStatusPresenter::flowHeadline($application),
+                'guidance' => ApplicationStatusPresenter::flowGuidance($application, $application->assessment->title),
                 'isFinalStatus' => $isFinalStatus,
                 'isAssessmentVisible' => $isAssessmentVisible,
+                'hasProjectTasks' => $hasProjectTasks,
+                'areProjectSubmissionsComplete' => $areProjectSubmissionsComplete,
                 'started_at' => $application->started_at?->toIso8601String(),
                 'expires_at' => $application->expires_at?->toIso8601String(),
                 'submitted_at' => $application->submitted_at?->toIso8601String(),
@@ -289,6 +295,7 @@ class AssesmentService
     {
         $application->load([
             'assessment.questions:id,assessment_id,type,correct_answer',
+            'assessment.projectTasks:id,assessment_id',
         ]);
 
         $now = now();
@@ -343,12 +350,29 @@ class AssesmentService
         }
 
         $application->update([
-            'status' => 'submitted',
+            'status' => $application->assessment->projectTasks->isNotEmpty() ? 'submitted' : 'under_review',
             'submitted_at' => $application->submitted_at ?? $now,
             'total_score' => $totalScore,
         ]);
 
         return $application->fresh();
+    }
+
+    /**
+     * Log a security warning/violation for a candidate during an assessment.
+     *
+     * @param  string  $action  One of the AssesmentWarning::ACTION_* constants
+     * @param  string|null  $description  Optional extra context
+     */
+    public function logWarning(Application $application, string $action, ?string $description = null): AssesmentWarning
+    {
+        return AssesmentWarning::create([
+            'assessment_id' => $application->assessment_id,
+            'application_id' => $application->id,
+            'candidate_id' => $application->candidate_id,
+            'action' => $action,
+            'description' => $description,
+        ]);
     }
 
     /**

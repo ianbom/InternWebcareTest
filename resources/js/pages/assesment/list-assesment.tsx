@@ -27,6 +27,7 @@ import { submit as projectSubmissionSubmit } from '@/routes/project-submissions'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type StatusTone = 'neutral' | 'info' | 'warning' | 'success' | 'danger';
+type StepKey = 'profile' | 'quiz' | 'project' | 'review' | 'result';
 
 interface ProjectSubmission {
     id: number;
@@ -61,10 +62,13 @@ interface ApplicationData {
     status: string;
     statusLabel: string;
     statusTone: StatusTone;
+    activeStep: StepKey;
     headline: string;
     guidance: string;
     isFinalStatus: boolean;
     isAssessmentVisible: boolean;
+    hasProjectTasks: boolean;
+    areProjectSubmissionsComplete: boolean;
     started_at: string | null;
     expires_at: string | null;
     submitted_at: string | null;
@@ -115,19 +119,38 @@ const STATUS_PANEL_CLASSES: Record<StatusTone, string> = {
     danger: 'border-rose-100 bg-rose-50 text-rose-800',
 };
 
+const FLOW_STEPS = [
+    { key: 'profile', label: 'Data Diri', icon: CheckCircle2 },
+    { key: 'quiz', label: 'Quiz', icon: Zap },
+    { key: 'project', label: 'Proyek', icon: Code },
+    { key: 'review', label: 'Review', icon: FileText },
+    { key: 'result', label: 'Hasil', icon: Rocket },
+] as const;
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Steps 1 is the Quiz/MCQ, Step 2 is the Project simulation. */
-function derivePhase(status: string): 'step1' | 'step2' | 'done' {
-    if (['pending', 'in_progress'].includes(status)) {
-        return 'step1';
+function getFlowStepState(
+    stepKey: StepKey,
+    activeStep: StepKey,
+    hasProjectTasks: boolean,
+): 'done' | 'active' | 'pending' | 'skipped' {
+    if (stepKey === 'project' && !hasProjectTasks) {
+        return 'skipped';
     }
 
-    if (['submitted', 'under_review'].includes(status)) {
-        return 'step2';
+    const order: StepKey[] = ['profile', 'quiz', 'project', 'review', 'result'];
+    const currentIndex = order.indexOf(activeStep);
+    const stepIndex = order.indexOf(stepKey);
+
+    if (stepIndex < currentIndex) {
+        return 'done';
     }
 
-    return 'done'; // approved / rejected
+    if (stepIndex === currentIndex) {
+        return 'active';
+    }
+
+    return 'pending';
 }
 
 function formatDateTime(value: string | null): string | null {
@@ -174,14 +197,21 @@ function extractFileName(path: string | null): string | null {
     return segments[segments.length - 1] ?? path;
 }
 
+
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ListAssesment({ hasApplication, application }: Props) {
-    const phase = application ? derivePhase(application.status) : 'step1';
-    const step1Active = phase === 'step1';
-    const step2Active = phase === 'step2' || phase === 'done';
-    const step1Done = phase === 'step2' || phase === 'done';
-    const step2Done = application?.status === 'under_review';
+    const activeStep = application?.activeStep ?? 'profile';
+    const hasProjectTasks = application?.hasProjectTasks ?? false;
+    const quizActive = activeStep === 'quiz';
+    const projectActive = activeStep === 'project';
+    const reviewActive = activeStep === 'review';
+    const quizDone = ['project', 'review', 'result'].includes(activeStep);
+    const projectDone =
+        hasProjectTasks &&
+        (application?.areProjectSubmissionsComplete ||
+            ['review', 'result'].includes(activeStep));
     const [projectFiles, setProjectFiles] = useState<
         Record<number, File | null>
     >({});
@@ -199,9 +229,7 @@ export default function ListAssesment({ hasApplication, application }: Props) {
         null,
     );
 
-    const canSubmitProject = ['submitted', 'under_review'].includes(
-        application?.status ?? '',
-    );
+    const canSubmitProject = projectActive;
 
     const handleProjectFileChange = (
         taskId: number,
@@ -285,7 +313,7 @@ export default function ListAssesment({ hasApplication, application }: Props) {
             <AppLayout>
                 <Head title="Assessment Saya - Webcare Intern" />
                 <div className="min-h-screen p-4 sm:p-8">
-                    <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl items-center justify-center">
+                    <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl flex-col justify-center gap-5">
                         <div className="w-full overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-[0_20px_70px_rgba(29,68,156,0.12)]">
                             <div
                                 className={`border-b p-8 text-center ${
@@ -368,19 +396,23 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                 <div className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.06)] sm:max-w-[240px]">
                                     <p className="flex-1 text-sm leading-relaxed text-gray-600">
                                         <span className="mb-0.5 block text-[11px] font-bold tracking-wider text-gray-400 uppercase">
-                                            Deadline Project
+                                            {hasProjectTasks
+                                                ? 'Deadline Pengerjaan'
+                                                : 'Mode Seleksi'}
                                         </span>
                                         <span className="block font-bold text-gray-800">
-                                            {application?.assessment
-                                                ?.project_tasks[0]?.submission
-                                                ?.deadline_at
-                                                ? formatDateTime(
-                                                      application.assessment
-                                                          .project_tasks[0]
-                                                          .submission
-                                                          .deadline_at,
-                                                  )
-                                                : '-'}
+                                            {hasProjectTasks
+                                                ? application?.assessment
+                                                      ?.project_tasks[0]
+                                                      ?.submission?.deadline_at
+                                                    ? formatDateTime(
+                                                          application.assessment
+                                                              .project_tasks[0]
+                                                              .submission
+                                                              .deadline_at,
+                                                      )
+                                                    : '-'
+                                                : 'Quiz saja'}
                                         </span>
                                     </p>
                                     {/* Rocket icon */}
@@ -390,7 +422,7 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                 </div>
                             </div>
 
-                            <div
+                            {/* <div
                                 className={`mb-8 rounded-3xl border p-5 ${
                                     STATUS_PANEL_CLASSES[application.statusTone]
                                 }`}
@@ -417,7 +449,7 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                         {application.position.title}
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* ── Timeline ─────────────────────────────────────────── */}
                             <div className="relative">
@@ -430,18 +462,18 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                         {/* Timeline icon */}
                                         <div
                                             className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                                                step1Done
+                                                quizDone
                                                     ? 'border-green-400 bg-green-400'
-                                                    : step1Active
+                                                    : quizActive
                                                       ? 'border-primary bg-primary shadow-[0_0_0_4px_rgba(29,68,156,0.15)]'
                                                       : 'border-gray-200 bg-gray-100'
                                             }`}
                                         >
-                                            {step1Done ? (
+                                            {quizDone ? (
                                                 <CheckCircle2 className="h-5 w-5 text-white" />
                                             ) : (
                                                 <Zap
-                                                    className={`h-5 w-5 ${step1Active ? 'text-white' : 'text-gray-400'}`}
+                                                    className={`h-5 w-5 ${quizActive ? 'text-white' : 'text-gray-400'}`}
                                                 />
                                             )}
                                         </div>
@@ -449,7 +481,7 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                         {/* Card */}
                                         <div
                                             className={`flex-1 rounded-2xl border bg-white p-5 shadow-sm transition-all duration-300 ${
-                                                step1Active
+                                                quizActive
                                                     ? 'border-l-4 border-t-gray-100 border-r-gray-100 border-b-gray-100 border-l-primary shadow-[0_4px_20px_rgba(29,68,156,0.08)]'
                                                     : 'border-gray-100 opacity-60'
                                             }`}
@@ -457,12 +489,12 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                 {/* Left info */}
                                                 <div>
-                                                    {step1Active && (
+                                                    {quizActive && (
                                                         <span className="mb-2 inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-primary uppercase">
                                                             Tahap Aktif
                                                         </span>
                                                     )}
-                                                    {step1Done && (
+                                                    {quizDone && (
                                                         <span className="mb-2 inline-block rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-green-600 uppercase">
                                                             Selesai
                                                         </span>
@@ -494,7 +526,7 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                                 </div>
 
                                                 {/* CTA */}
-                                                {step1Active &&
+                                                {quizActive &&
                                                     application.status ===
                                                         'pending' && (
                                                         <button
@@ -511,7 +543,7 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                                             <ArrowRight className="h-4 w-4" />
                                                         </button>
                                                     )}
-                                                {step1Active &&
+                                                {quizActive &&
                                                     application.status ===
                                                         'in_progress' && (
                                                         <Link
@@ -535,18 +567,18 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                             {/* Timeline icon */}
                                             <div
                                                 className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                                                    step2Done
+                                                    projectDone
                                                         ? 'border-green-400 bg-green-400'
-                                                        : step2Active
+                                                        : projectActive
                                                           ? 'border-primary bg-primary shadow-[0_0_0_4px_rgba(29,68,156,0.15)]'
                                                           : 'border-gray-200 bg-gray-100'
                                                 }`}
                                             >
-                                                {step2Done ? (
+                                                {projectDone ? (
                                                     <CheckCircle2 className="h-5 w-5 text-white" />
                                                 ) : (
                                                     <Lock
-                                                        className={`h-4 w-4 ${step2Active ? 'text-white' : 'text-gray-400'}`}
+                                                        className={`h-4 w-4 ${projectActive ? 'text-white' : 'text-gray-400'}`}
                                                     />
                                                 )}
                                             </div>
@@ -554,13 +586,13 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                             {/* Card */}
                                             <div
                                                 className={`flex-1 rounded-2xl border bg-white p-5 shadow-sm transition-all duration-300 ${
-                                                    step2Active
+                                                    projectActive
                                                         ? 'border-l-4 border-t-gray-100 border-r-gray-100 border-b-gray-100 border-l-primary shadow-[0_4px_20px_rgba(29,68,156,0.08)]'
                                                         : 'border-gray-100 opacity-50'
                                                 }`}
                                             >
                                                 {/* If locked, show single-line collapsed */}
-                                                {!step2Active ? (
+                                                {!projectActive ? (
                                                     <div className="flex items-center justify-between">
                                                         <div>
                                                             <h2 className="text-lg font-bold text-gray-400">
@@ -586,9 +618,15 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 text-sm text-gray-300">
-                                                            <Lock className="h-4 w-4" />
+                                                            {projectDone ? (
+                                                                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                                            ) : (
+                                                                <Lock className="h-4 w-4" />
+                                                            )}
                                                             <span className="font-medium">
-                                                                Terkunci
+                                                                {projectDone
+                                                                    ? 'Selesai'
+                                                                    : 'Terkunci'}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -597,14 +635,14 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                                     <div>
                                                         <span
                                                             className={`mb-2 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-widest uppercase ${
-                                                                step2Done
+                                                                projectDone
                                                                     ? 'bg-green-50 text-green-600'
                                                                     : canSubmitProject
                                                                       ? 'bg-blue-50 text-primary'
                                                                       : 'bg-green-50 text-green-600'
                                                             }`}
                                                         >
-                                                            {step2Done
+                                                            {projectDone
                                                                 ? 'Selesai'
                                                                 : canSubmitProject
                                                                   ? 'Tahap Aktif'
@@ -900,6 +938,80 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                             </div>
                                         </div>
                                     )}
+
+                                    {application.assessment.project_tasks
+                                        .length === 0 && (
+                                        <div className="relative flex items-start gap-4">
+                                            <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-gray-200 bg-white text-gray-300">
+                                                <Code className="h-4 w-4" />
+                                            </div>
+                                            <div className="flex-1 rounded-2xl border border-dashed border-gray-200 bg-white p-5 opacity-80 shadow-sm">
+                                                <span className="mb-2 inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+                                                    Dilewati
+                                                </span>
+                                                <h2 className="text-lg font-bold text-gray-800">
+                                                    Tahap 2: Project
+                                                </h2>
+                                                <p className="mt-1 text-sm leading-relaxed text-gray-500">
+                                                    Assessment untuk posisi ini
+                                                    hanya membutuhkan quiz.
+                                                    Setelah quiz dikirim, proses
+                                                    langsung masuk ke tahap
+                                                    review.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="relative flex items-start gap-4">
+                                        <div
+                                            className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                                                reviewActive
+                                                    ? 'border-primary bg-primary text-white shadow-[0_0_0_4px_rgba(29,68,156,0.15)]'
+                                                    : activeStep === 'result'
+                                                      ? 'border-green-400 bg-green-400 text-white'
+                                                      : 'border-gray-200 bg-gray-100 text-gray-400'
+                                            }`}
+                                        >
+                                            {activeStep === 'result' ? (
+                                                <CheckCircle2 className="h-5 w-5" />
+                                            ) : (
+                                                <FileText className="h-4 w-4" />
+                                            )}
+                                        </div>
+                                        <div
+                                            className={`flex-1 rounded-2xl border bg-white p-5 shadow-sm transition-all duration-300 ${
+                                                reviewActive
+                                                    ? 'border-l-4 border-t-gray-100 border-r-gray-100 border-b-gray-100 border-l-primary shadow-[0_4px_20px_rgba(29,68,156,0.08)]'
+                                                    : 'border-gray-100 opacity-70'
+                                            }`}
+                                        >
+                                            <span
+                                                className={`mb-2 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-widest uppercase ${
+                                                    reviewActive
+                                                        ? 'bg-blue-50 text-primary'
+                                                        : activeStep ===
+                                                            'result'
+                                                          ? 'bg-green-50 text-green-600'
+                                                          : 'bg-gray-100 text-gray-400'
+                                                }`}
+                                            >
+                                                {reviewActive
+                                                    ? 'Tahap Aktif'
+                                                    : activeStep === 'result'
+                                                      ? 'Selesai'
+                                                      : 'Menunggu'}
+                                            </span>
+                                            <h2 className="text-lg font-bold text-gray-800">
+                                                Tahap 3: Menunggu Review
+                                            </h2>
+                                            <p className="mt-1 text-sm leading-relaxed text-gray-500">
+                                                {hasProjectTasks
+                                                    ? 'Tim reviewer akan memeriksa hasil quiz dan project yang sudah Anda kirim sebelum menentukan hasil akhir.'
+                                                    : 'Tim reviewer akan memeriksa hasil quiz Anda sebelum menentukan hasil akhir.'}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

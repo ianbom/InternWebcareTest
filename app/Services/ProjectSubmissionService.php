@@ -43,6 +43,19 @@ class ProjectSubmissionService
                 'submitted_at' => $submittedAt,
             ]);
 
+            $application->load('projectSubmissions');
+
+            $allProjectsSubmitted = $application->projectSubmissions
+                ->every(fn (ProjectSubmission $projectSubmission): bool => in_array(
+                    $projectSubmission->status,
+                    ['submitted', 'reviewed'],
+                    true,
+                ));
+
+            if ($allProjectsSubmitted) {
+                $application->update(['status' => 'under_review']);
+            }
+
             return $submission->fresh(['projectTask']);
         });
     }
@@ -51,7 +64,7 @@ class ProjectSubmissionService
         Application $application,
         ProjectSubmission $projectSubmission,
     ): void {
-        if (! in_array($application->status, ['submitted', 'under_review'], true)) {
+        if ($application->status !== 'submitted') {
             throw ValidationException::withMessages([
                 'submission_file' => 'Project belum dapat dikumpulkan pada tahap ini.',
             ]);

@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('assesment/{application}/start', [AssesmentController::class, 'startAssessment'])->name('assessments.start');
     Route::get('assesment/{application}/take', [AssesmentController::class, 'take'])->name('assessments.take');
     Route::post('assesment/{application}/submit', [AssesmentController::class, 'submit'])->name('assessments.submit');
+    Route::post('assesment/{application}/warn', [AssesmentController::class, 'logWarning'])->name('assessments.warn');
     Route::post(
         'assesment/{application}/project-submissions/{projectSubmission}/submit',
         [ProjectSubmissionController::class, 'submit'],

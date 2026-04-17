@@ -113,55 +113,6 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
 
             <div className="min-h-screen p-4 sm:p-6">
 
-                {/* ── Search Bar ─────────────────────────────────────────── */}
-                <div className="mb-5 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm">
-                    {/* Location picker */}
-                    <button className="flex shrink-0 items-center gap-1.5 border-r border-gray-200 pr-4 text-sm font-semibold text-gray-700">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        Semua Kota
-                        <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
-                    </button>
-
-                    {/* Search input */}
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Cari berdasarkan Judul atau kata kunci posisi..."
-                        className="min-w-0 flex-1 bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
-                    />
-
-                    {/* Filter button */}
-                    <button className="hidden shrink-0 items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 sm:flex">
-                        <SlidersHorizontal className="h-4 w-4" />
-                        FILTER
-                    </button>
-
-                    {/* Find button */}
-                    <button className="flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90">
-                        <Search className="h-4 w-4" />
-                        FIND
-                    </button>
-                </div>
-
-                {/* ── Category Pills ─────────────────────────────────────── */}
-                <div className="mb-5 flex flex-wrap items-center gap-2">
-                    <span className="shrink-0 text-sm font-medium text-gray-400">Saran</span>
-                    {CATEGORIES.map((cat) => (
-                        <button
-                            key={cat}
-                            onClick={() => setActiveCategory(cat)}
-                            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
-                                activeCategory === cat
-                                    ? 'bg-primary text-white shadow-md shadow-primary/20'
-                                    : 'bg-purple-50 text-primary hover:bg-purple-100'
-                            }`}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
-
                 {/* ── Results header ─────────────────────────────────────── */}
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     {/* Count */}
@@ -170,60 +121,6 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
                             Menampilkan {filtered.length} Posisi Magang
                         </p>
                         <p className="text-sm text-gray-400">Berdasarkan preferensi Anda</p>
-                    </div>
-
-                    {/* Controls */}
-                    <div className="flex items-center gap-2">
-                        {/* Type filter */}
-                        <button
-                            onClick={() => setTypeFilter('fulltime')}
-                            className="hidden items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 sm:flex"
-                        >
-                            {typeFilter === 'fulltime'
-                                ? <CheckCircle2 className="h-4 w-4 text-primary" />
-                                : <Circle className="h-4 w-4 text-gray-300" />}
-                            Full Time
-                        </button>
-                        <button
-                            onClick={() => setTypeFilter('freelance')}
-                            className="hidden items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 sm:flex"
-                        >
-                            {typeFilter === 'freelance'
-                                ? <CheckCircle2 className="h-4 w-4 text-primary" />
-                                : <Circle className="h-4 w-4 text-gray-300" />}
-                            Magang
-                        </button>
-
-                        {/* Sort */}
-                        <button className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50">
-                            <ArrowUpDown className="h-3.5 w-3.5" />
-                            Terbaru
-                            <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
-                        </button>
-
-                        {/* View toggle */}
-                        <div className="flex items-center gap-0.5 rounded-xl border border-gray-200 bg-white p-1">
-                            <button
-                                onClick={() => setViewMode('list')}
-                                className={`rounded-lg p-1.5 transition-colors ${
-                                    viewMode === 'list'
-                                        ? 'bg-primary text-white'
-                                        : 'text-gray-400 hover:text-gray-600'
-                                }`}
-                            >
-                                <ListIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                                onClick={() => setViewMode('grid')}
-                                className={`rounded-lg p-1.5 transition-colors ${
-                                    viewMode === 'grid'
-                                        ? 'bg-primary text-white'
-                                        : 'text-gray-400 hover:text-gray-600'
-                                }`}
-                            >
-                                <LayoutGrid className="h-4 w-4" />
-                            </button>
-                        </div>
                     </div>
                 </div>
 

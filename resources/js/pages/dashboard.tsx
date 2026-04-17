@@ -11,7 +11,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { index as positionsIndex } from '@/routes/positions';
 
-type StepKey = 'register' | 'assessment' | 'review' | 'result';
+type StepKey = 'profile' | 'quiz' | 'project' | 'review' | 'result';
 type StatusTone = 'neutral' | 'info' | 'warning' | 'success' | 'danger';
 
 interface CandidateData {
@@ -34,6 +34,8 @@ interface ApplicationData {
     statusLabel: string;
     statusTone: StatusTone;
     activeStep: StepKey;
+    hasProjectTasks: boolean;
+    areProjectSubmissionsComplete: boolean;
     headline: string;
     nextActionLabel: string | null;
     nextActionUrl: string | null;
@@ -48,8 +50,9 @@ interface Props {
 }
 
 const STEP_ITEMS = [
-    { key: 'register', label: 'Daftar', icon: Check },
-    { key: 'assessment', label: 'Assessment', icon: Sparkles },
+    { key: 'profile', label: 'Data Diri', icon: Check },
+    { key: 'quiz', label: 'Quiz', icon: Sparkles },
+    { key: 'project', label: 'Proyek', icon: Lightbulb },
     { key: 'review', label: 'Review', icon: Eye },
     { key: 'result', label: 'Hasil Akhir', icon: Flag },
 ] as const;
@@ -73,8 +76,19 @@ const STATUS_PANEL_CLASSES: Record<StatusTone, string> = {
 function getStepState(
     stepKey: StepKey,
     activeStep: StepKey,
-): 'done' | 'active' | 'pending' {
-    const stepOrder: StepKey[] = ['register', 'assessment', 'review', 'result'];
+    hasProjectTasks: boolean,
+): 'done' | 'active' | 'pending' | 'skipped' {
+    if (stepKey === 'project' && !hasProjectTasks) {
+        return 'skipped';
+    }
+
+    const stepOrder: StepKey[] = [
+        'profile',
+        'quiz',
+        'project',
+        'review',
+        'result',
+    ];
     const currentIndex = stepOrder.indexOf(activeStep);
     const stepIndex = stepOrder.indexOf(stepKey);
 
@@ -98,9 +112,10 @@ function buildCvAlertMessage(hasCv: boolean): string {
 }
 
 export default function Dashboard({ candidate, application }: Props) {
-    const activeStep = application?.activeStep ?? 'register';
+    const activeStep = application?.activeStep ?? 'profile';
     const showActiveApplication = Boolean(application);
     const actionMethod = application?.nextActionMethod ?? 'get';
+    const hasProjectTasks = application?.hasProjectTasks ?? false;
 
     return (
         <AppLayout>
@@ -172,12 +187,13 @@ export default function Dashboard({ candidate, application }: Props) {
                             <div className="relative mt-8">
                                 <div className="absolute top-5 right-6 left-6 h-0.5 bg-[#DCE2EE]" />
 
-                                <div className="relative grid grid-cols-4 gap-3">
+                                <div className="relative grid grid-cols-5 gap-3">
                                     {STEP_ITEMS.map((step) => {
                                         const Icon = step.icon;
                                         const state = getStepState(
                                             step.key,
                                             activeStep,
+                                            hasProjectTasks,
                                         );
 
                                         return (
@@ -191,20 +207,29 @@ export default function Dashboard({ candidate, application }: Props) {
                                                             ? 'border-[#0E3F97] bg-[#0E3F97] text-white'
                                                             : state === 'active'
                                                               ? 'border-[#78A0FF] bg-[#78A0FF] text-white shadow-[0_0_0_4px_rgba(120,160,255,0.25)]'
-                                                              : 'border-[#DCE2EE] bg-[#F1F4FA] text-[#A6AFC2]'
+                                                              : state ===
+                                                                  'skipped'
+                                                                ? 'border-dashed border-[#DCE2EE] bg-white text-[#A6AFC2]'
+                                                                : 'border-[#DCE2EE] bg-[#F1F4FA] text-[#A6AFC2]'
                                                     }`}
                                                 >
                                                     <Icon className="h-4 w-4" />
                                                 </div>
                                                 <p
                                                     className={`text-xs font-semibold ${
-                                                        state === 'pending'
+                                                        state === 'pending' ||
+                                                        state === 'skipped'
                                                             ? 'text-[#8A94AA]'
                                                             : 'text-[#0E3F97]'
                                                     }`}
                                                 >
                                                     {step.label}
                                                 </p>
+                                                {state === 'skipped' && (
+                                                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                                                        Dilewati
+                                                    </span>
+                                                )}
                                             </div>
                                         );
                                     })}
