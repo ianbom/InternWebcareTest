@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Application;
 use App\Models\User;
+use App\Support\ApplicationStatusPresenter;
 use Illuminate\Support\Facades\Storage;
 
 class DashboardService
@@ -66,62 +67,64 @@ class DashboardService
      *     positionTitle: string,
      *     appliedAt: ?string,
      *     status: string,
+     *     statusLabel: string,
+     *     statusTone: string,
      *     activeStep: string,
-     *     nextActionLabel: string,
-     *     nextActionUrl: string,
+     *     headline: string,
+     *     nextActionLabel: ?string,
+     *     nextActionUrl: ?string,
+     *     nextActionMethod: ?string,
+     *     canOpenAssessment: bool,
      *     guidance: string
      * }
      */
     private function mapApplication(Application $application): array
     {
+        $status = $application->status;
+
         return [
             'positionTitle' => $application->position->title,
             'appliedAt' => $application->created_at?->format('d M Y'),
-            'status' => $application->status,
-            'activeStep' => $this->resolveActiveStep($application->status),
-            'nextActionLabel' => $this->resolveActionLabel($application->status),
+            'status' => $status,
+            'statusLabel' => ApplicationStatusPresenter::label($status),
+            'statusTone' => ApplicationStatusPresenter::tone($status),
+            'activeStep' => ApplicationStatusPresenter::activeStep($status),
+            'headline' => ApplicationStatusPresenter::headline($status),
+            'nextActionLabel' => $this->resolveActionLabel($status),
             'nextActionUrl' => $this->resolveActionUrl($application),
-            'guidance' => $this->resolveGuidance($application),
+            'nextActionMethod' => $this->resolveActionMethod($status),
+            'canOpenAssessment' => ! ApplicationStatusPresenter::isFinal($status),
+            'guidance' => ApplicationStatusPresenter::guidance($status, $application->assessment->title),
         ];
     }
 
-    private function resolveActiveStep(string $status): string
+    private function resolveActionLabel(string $status): ?string
     {
         return match ($status) {
-            'submitted', 'under_review' => 'review',
-            'approved', 'rejected' => 'result',
-            default => 'assessment',
-        };
-    }
-
-    private function resolveActionLabel(string $status): string
-    {
-        return match ($status) {
+            'pending' => 'Mulai Assessment',
             'in_progress' => 'Lanjutkan Assessment',
-            'submitted', 'under_review' => 'Pantau Progress Seleksi',
-            'approved', 'rejected' => 'Lihat Hasil Akhir',
-            default => 'Mulai Assessment Sekarang',
+            'submitted', 'under_review' => 'Lihat Status Assessment',
+            'approved', 'rejected' => null,
+            default => null,
         };
     }
 
-    private function resolveActionUrl(Application $application): string
+    private function resolveActionUrl(Application $application): ?string
     {
         return match ($application->status) {
-            'pending' => "/assessments/{$application->assessment_id}/start",
-            'in_progress' => "/assessments/{$application->assessment_id}/continue",
-            default => '/assesment',
+            'pending' => route('assessments.start', $application),
+            'in_progress' => route('assessments.take', $application),
+            'submitted', 'under_review' => route('assessments.index'),
+            default => null,
         };
     }
 
-    private function resolveGuidance(Application $application): string
+    private function resolveActionMethod(string $status): ?string
     {
-        return match ($application->status) {
-            'in_progress' => 'Assessment sedang berjalan. Pastikan jawaban Anda tersimpan sebelum waktu berakhir.',
-            'submitted' => 'Assessment sudah dikirim. Tim reviewer akan meninjau hasil Anda.',
-            'under_review' => 'Lamaran Anda sedang dalam tahap review. Mohon tunggu hasil akhir dari tim recruiter.',
-            'approved' => 'Selamat! Anda lolos ke tahap akhir. Cek arahan lanjutan dari recruiter.',
-            'rejected' => 'Terima kasih sudah mengikuti proses seleksi. Tetap semangat dan coba posisi lainnya.',
-            default => "Tahap selanjutnya adalah {$application->assessment->title}. Siapkan koneksi internet yang stabil dan fokus selama sesi berlangsung.",
+        return match ($status) {
+            'pending' => 'post',
+            'in_progress', 'submitted', 'under_review' => 'get',
+            default => null,
         };
     }
 }

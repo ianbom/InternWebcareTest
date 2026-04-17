@@ -9,6 +9,7 @@ use App\Models\Position;
 use App\Models\ProjectTask;
 use App\Models\Question;
 use App\Models\User;
+use App\Support\ApplicationStatusPresenter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -216,12 +217,21 @@ class AssesmentService
         }
 
         $projectSubmissions = $application->projectSubmissions->keyBy('project_task_id');
+        $status = $application->status;
+        $isFinalStatus = ApplicationStatusPresenter::isFinal($status);
+        $isAssessmentVisible = ApplicationStatusPresenter::isAssessmentVisible($status);
 
         return [
             'hasApplication' => true,
             'application' => [
                 'id' => $application->id,
-                'status' => $application->status,
+                'status' => $status,
+                'statusLabel' => ApplicationStatusPresenter::label($status),
+                'statusTone' => ApplicationStatusPresenter::tone($status),
+                'headline' => ApplicationStatusPresenter::headline($status),
+                'guidance' => ApplicationStatusPresenter::guidance($status, $application->assessment->title),
+                'isFinalStatus' => $isFinalStatus,
+                'isAssessmentVisible' => $isAssessmentVisible,
                 'started_at' => $application->started_at?->toIso8601String(),
                 'expires_at' => $application->expires_at?->toIso8601String(),
                 'submitted_at' => $application->submitted_at?->toIso8601String(),
@@ -234,20 +244,22 @@ class AssesmentService
                     'id' => $application->assessment->id,
                     'title' => $application->assessment->title,
                     'duration_minutes' => $application->assessment->duration_minutes,
-                    'project_tasks' => $application->assessment->projectTasks
-                        ->map(function ($task) use ($projectSubmissions) {
-                            $submission = $projectSubmissions->get($task->id);
+                    'project_tasks' => $isAssessmentVisible
+                        ? $application->assessment->projectTasks
+                            ->map(function ($task) use ($projectSubmissions) {
+                                $submission = $projectSubmissions->get($task->id);
 
-                            return [
-                                'id' => $task->id,
-                                'title' => $task->title,
-                                'description' => $task->description,
-                                'deadline_hours' => $task->deadline_hours,
-                                'submission' => $this->mapProjectSubmission($submission),
-                            ];
-                        })
-                        ->values()
-                        ->all(),
+                                return [
+                                    'id' => $task->id,
+                                    'title' => $task->title,
+                                    'description' => $task->description,
+                                    'deadline_hours' => $task->deadline_hours,
+                                    'submission' => $this->mapProjectSubmission($submission),
+                                ];
+                            })
+                            ->values()
+                            ->all()
+                        : [],
                 ],
             ],
         ];

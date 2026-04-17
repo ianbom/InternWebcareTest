@@ -221,37 +221,6 @@ export default function PositionIndex({
                                     kandidat.
                                 </p>
                             </div>
-                            <div className="grid gap-3 rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-2xl bg-white/15 p-3">
-                                        <BriefcaseBusiness className="size-6" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-blue-100">
-                                            Total posisi
-                                        </p>
-                                        <p className="text-4xl font-black">
-                                            {positions.total}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div className="rounded-2xl bg-white/10 p-3">
-                                        <p className="text-blue-100">
-                                            Aktif di halaman ini
-                                        </p>
-                                        <p className="mt-1 text-2xl font-black">
-                                            {activeCount}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-2xl bg-white/10 p-3">
-                                        <p className="text-blue-100">Urutan</p>
-                                        <p className="mt-1 font-black">
-                                            {selectedSort}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </section>
 

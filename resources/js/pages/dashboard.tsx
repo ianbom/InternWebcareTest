@@ -9,8 +9,10 @@ import {
     Sparkles,
 } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
+import { index as positionsIndex } from '@/routes/positions';
 
 type StepKey = 'register' | 'assessment' | 'review' | 'result';
+type StatusTone = 'neutral' | 'info' | 'warning' | 'success' | 'danger';
 
 interface CandidateData {
     name: string;
@@ -29,9 +31,14 @@ interface ApplicationData {
     positionTitle: string;
     appliedAt: string | null;
     status: string;
+    statusLabel: string;
+    statusTone: StatusTone;
     activeStep: StepKey;
-    nextActionLabel: string;
-    nextActionUrl: string;
+    headline: string;
+    nextActionLabel: string | null;
+    nextActionUrl: string | null;
+    nextActionMethod: 'get' | 'post' | null;
+    canOpenAssessment: boolean;
     guidance: string;
 }
 
@@ -47,7 +54,26 @@ const STEP_ITEMS = [
     { key: 'result', label: 'Hasil Akhir', icon: Flag },
 ] as const;
 
-function getStepState(stepKey: StepKey, activeStep: StepKey): 'done' | 'active' | 'pending' {
+const STATUS_TONE_CLASSES: Record<StatusTone, string> = {
+    neutral: 'bg-slate-100 text-slate-700',
+    info: 'bg-blue-50 text-blue-700',
+    warning: 'bg-amber-50 text-amber-700',
+    success: 'bg-emerald-50 text-emerald-700',
+    danger: 'bg-rose-50 text-rose-700',
+};
+
+const STATUS_PANEL_CLASSES: Record<StatusTone, string> = {
+    neutral: 'bg-slate-50 text-slate-700',
+    info: 'bg-blue-50 text-blue-800',
+    warning: 'bg-amber-50 text-amber-800',
+    success: 'bg-emerald-50 text-emerald-800',
+    danger: 'bg-rose-50 text-rose-800',
+};
+
+function getStepState(
+    stepKey: StepKey,
+    activeStep: StepKey,
+): 'done' | 'active' | 'pending' {
     const stepOrder: StepKey[] = ['register', 'assessment', 'review', 'result'];
     const currentIndex = stepOrder.indexOf(activeStep);
     const stepIndex = stepOrder.indexOf(stepKey);
@@ -74,6 +100,7 @@ function buildCvAlertMessage(hasCv: boolean): string {
 export default function Dashboard({ candidate, application }: Props) {
     const activeStep = application?.activeStep ?? 'register';
     const showActiveApplication = Boolean(application);
+    const actionMethod = application?.nextActionMethod ?? 'get';
 
     return (
         <AppLayout>
@@ -85,11 +112,12 @@ export default function Dashboard({ candidate, application }: Props) {
                         <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-[#0E3F97] to-[#1B52B8] shadow-[0_10px_28px_rgba(15,62,148,0.25)]">
                             <div className="grid min-h-[170px] md:grid-cols-[minmax(0,1fr)_154px]">
                                 <div className="p-7">
-                                    <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white">
+                                    <h1 className="text-4xl leading-tight font-extrabold tracking-tight text-white">
                                         Selamat Datang, {candidate.name}!
                                     </h1>
                                     <p className="mt-4 max-w-md text-lg leading-relaxed text-blue-100">
-                                        Satu langkah lagi menuju karir impianmu. Mari selesaikan assessment hari ini.
+                                        Satu langkah lagi menuju karir impianmu.
+                                        Mari selesaikan assessment hari ini.
                                     </p>
                                 </div>
                             </div>
@@ -103,31 +131,60 @@ export default function Dashboard({ candidate, application }: Props) {
                                     </h2>
                                     <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-[#65708C]">
                                         <span className="rounded-full bg-[#E8F0FF] px-3 py-1 text-xs font-bold tracking-wide text-[#0E3F97]">
-                                            {showActiveApplication ? 'ACTIVE APPLICATION' : 'BELUM ADA LAMARAN'}
+                                            {showActiveApplication
+                                                ? 'ACTIVE APPLICATION'
+                                                : 'BELUM ADA LAMARAN'}
                                         </span>
-                                        {application?.appliedAt && <span>&bull;</span>}
-                                        {application?.appliedAt && <span>Dilamar pada {application.appliedAt}</span>}
+                                        {application?.statusLabel && (
+                                            <span
+                                                className={`rounded-full px-3 py-1 text-xs font-bold tracking-wide ${
+                                                    STATUS_TONE_CLASSES[
+                                                        application.statusTone
+                                                    ]
+                                                }`}
+                                            >
+                                                {application.statusLabel}
+                                            </span>
+                                        )}
+                                        {application?.appliedAt && (
+                                            <span>&bull;</span>
+                                        )}
+                                        {application?.appliedAt && (
+                                            <span>
+                                                Dilamar pada{' '}
+                                                {application.appliedAt}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
                                 <div className="text-left sm:text-right">
-                                    <p className="text-sm font-medium text-[#65708C]">Posisi</p>
+                                    <p className="text-sm font-medium text-[#65708C]">
+                                        Posisi
+                                    </p>
                                     <p className="text-3xl font-bold text-[#0E3F97]">
-                                        {application?.positionTitle ?? 'Belum memilih posisi'}
+                                        {application?.positionTitle ??
+                                            'Belum memilih posisi'}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="relative mt-8">
-                                <div className="absolute left-6 right-6 top-5 h-0.5 bg-[#DCE2EE]" />
+                                <div className="absolute top-5 right-6 left-6 h-0.5 bg-[#DCE2EE]" />
 
                                 <div className="relative grid grid-cols-4 gap-3">
                                     {STEP_ITEMS.map((step) => {
                                         const Icon = step.icon;
-                                        const state = getStepState(step.key, activeStep);
+                                        const state = getStepState(
+                                            step.key,
+                                            activeStep,
+                                        );
 
                                         return (
-                                            <div key={step.key} className="flex flex-col items-center gap-2">
+                                            <div
+                                                key={step.key}
+                                                className="flex flex-col items-center gap-2"
+                                            >
                                                 <div
                                                     className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
                                                         state === 'done'
@@ -141,7 +198,9 @@ export default function Dashboard({ candidate, application }: Props) {
                                                 </div>
                                                 <p
                                                     className={`text-xs font-semibold ${
-                                                        state === 'pending' ? 'text-[#8A94AA]' : 'text-[#0E3F97]'
+                                                        state === 'pending'
+                                                            ? 'text-[#8A94AA]'
+                                                            : 'text-[#0E3F97]'
                                                     }`}
                                                 >
                                                     {step.label}
@@ -152,19 +211,53 @@ export default function Dashboard({ candidate, application }: Props) {
                                 </div>
                             </div>
 
-                            <div className="mt-8 rounded-2xl bg-[#F3F5FB] p-8 text-center">
-                                <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#3F4A63]">
+                            <div
+                                className={`mt-8 rounded-2xl p-8 text-center ${
+                                    application
+                                        ? STATUS_PANEL_CLASSES[
+                                              application.statusTone
+                                          ]
+                                        : 'bg-[#F3F5FB] text-[#3F4A63]'
+                                }`}
+                            >
+                                <h3 className="text-2xl font-black text-[#0F1E46]">
+                                    {application?.headline ??
+                                        'Belum ada lamaran aktif'}
+                                </h3>
+                                <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed">
                                     {application?.guidance ??
                                         'Anda belum memiliki lamaran aktif. Silakan pilih posisi terlebih dahulu untuk memulai assessment.'}
                                 </p>
 
-                                <Link
-                                    href={application?.nextActionUrl ?? '/positions'}
-                                    className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-[#0E3F97] px-8 py-3 text-sm font-bold text-white shadow-[0_8px_20px_rgba(14,63,151,0.35)] transition-all hover:-translate-y-0.5 hover:bg-[#0B3682]"
-                                >
-                                    {application?.nextActionLabel ?? 'Pilih Posisi Sekarang'}
-                                    <ArrowRight className="h-4 w-4" />
-                                </Link>
+                                {application?.nextActionUrl &&
+                                application.nextActionLabel ? (
+                                    <Link
+                                        href={application.nextActionUrl}
+                                        method={actionMethod}
+                                        as={
+                                            actionMethod === 'post'
+                                                ? 'button'
+                                                : 'a'
+                                        }
+                                        className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-[#0E3F97] px-8 py-3 text-sm font-bold text-white shadow-[0_8px_20px_rgba(14,63,151,0.35)] transition-all hover:-translate-y-0.5 hover:bg-[#0B3682]"
+                                    >
+                                        {application.nextActionLabel}
+                                        <ArrowRight className="h-4 w-4" />
+                                    </Link>
+                                ) : !application ? (
+                                    <Link
+                                        href={positionsIndex.url()}
+                                        className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-[#0E3F97] px-8 py-3 text-sm font-bold text-white shadow-[0_8px_20px_rgba(14,63,151,0.35)] transition-all hover:-translate-y-0.5 hover:bg-[#0B3682]"
+                                    >
+                                        Pilih Posisi Sekarang
+                                        <ArrowRight className="h-4 w-4" />
+                                    </Link>
+                                ) : (
+                                    <p className="mt-6 text-sm font-bold text-[#0F1E46]">
+                                        Status final sudah tersedia. Tidak ada
+                                        assessment aktif yang perlu dikerjakan.
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -173,7 +266,7 @@ export default function Dashboard({ candidate, application }: Props) {
                         <div className="rounded-2xl border border-[#F3CC8B] bg-[#FFF6E8] p-4">
                             <div className="flex items-start gap-2">
                                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#E2951A]" />
-                                <p className="text-xs font-semibold leading-relaxed text-[#8A5A0A]">
+                                <p className="text-xs leading-relaxed font-semibold text-[#8A5A0A]">
                                     {buildCvAlertMessage(candidate.hasCv)}
                                 </p>
                             </div>
@@ -196,7 +289,9 @@ export default function Dashboard({ candidate, application }: Props) {
                             <div className="mt-3 h-1.5 rounded-full bg-[#E3E8F2]">
                                 <div
                                     className="h-1.5 rounded-full bg-[#0E3F97]"
-                                    style={{ width: `${candidate.profileCompletion}%` }}
+                                    style={{
+                                        width: `${candidate.profileCompletion}%`,
+                                    }}
                                 />
                             </div>
                         </div>
@@ -218,7 +313,7 @@ export default function Dashboard({ candidate, application }: Props) {
                                     <p className="text-xs font-semibold text-[#7A849B]">
                                         Email
                                     </p>
-                                    <p className="break-all font-medium text-[#0F1E46]">
+                                    <p className="font-medium break-all text-[#0F1E46]">
                                         {candidate.email}
                                     </p>
                                 </div>
@@ -239,7 +334,7 @@ export default function Dashboard({ candidate, application }: Props) {
                                             href={candidate.cv.url}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="break-all font-medium text-[#0E3F97] underline decoration-[#C3D2F7] underline-offset-4 transition-colors hover:text-[#0B3682]"
+                                            className="font-medium break-all text-[#0E3F97] underline decoration-[#C3D2F7] underline-offset-4 transition-colors hover:text-[#0B3682]"
                                         >
                                             Lihat CV
                                         </a>
@@ -260,7 +355,9 @@ export default function Dashboard({ candidate, application }: Props) {
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-[#4B4F63] p-3 text-xs leading-relaxed text-white/95">
-                                “Pelajari kembali struktur data dan algoritma dasar untuk posisi Web Developer. Kebanyakan soal akan menguji logika dasar JavaScript.”
+                                “Pelajari kembali struktur data dan algoritma
+                                dasar untuk posisi Web Developer. Kebanyakan
+                                soal akan menguji logika dasar JavaScript.”
                             </div>
                         </div>
                     </aside>
