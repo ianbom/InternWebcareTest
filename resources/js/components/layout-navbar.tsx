@@ -1,10 +1,16 @@
+import { usePage } from '@inertiajs/react';
 import { ChevronDown, Menu } from 'lucide-react';
+import { useInitials } from '@/hooks/use-initials';
 
 type LayoutNavbarProps = {
     onMenuClick?: () => void;
 };
 
 export function LayoutNavbar({ onMenuClick }: LayoutNavbarProps) {
+    const { auth } = usePage().props;
+    const getInitials = useInitials();
+    const userName = auth.user?.name ?? 'User';
+    const initials = getInitials(userName);
     const currentDate = new Intl.DateTimeFormat('id-ID', {
         weekday: 'long',
         day: '2-digit',
@@ -30,9 +36,9 @@ export function LayoutNavbar({ onMenuClick }: LayoutNavbarProps) {
 
             <div className="ml-auto flex items-center gap-2.5">
                 <div className="hidden items-center gap-2.5 md:flex">
-                    <span className="text-base font-semibold text-[#1D449C]">Andrew Forbist</span>
+                    <span className="text-base font-semibold text-[#1D449C]">{userName}</span>
                     <span className="inline-flex size-8 items-center justify-center rounded-full bg-[#3D72D1] text-[10px] font-bold text-[#FFFFFF]">
-                        AF
+                        {initials}
                     </span>
                 </div>
 
@@ -40,7 +46,7 @@ export function LayoutNavbar({ onMenuClick }: LayoutNavbarProps) {
                     type="button"
                     className="inline-flex items-center gap-1 rounded-full bg-[#EAECEF] px-2 py-1.5 text-[11px] font-semibold text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)] md:hidden"
                 >
-                    Andrew Forbist
+                    {userName}
                     <ChevronDown className="size-3.5" />
                 </button>
             </div>

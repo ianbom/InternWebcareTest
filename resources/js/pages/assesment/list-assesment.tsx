@@ -151,8 +151,7 @@ export default function ListAssesment({ hasApplication, application }: Props) {
     const step1Active = phase === 'step1';
     const step2Active = phase === 'step2' || phase === 'done';
     const step1Done   = phase === 'step2' || phase === 'done';
-
-    const totalTahap = 2;
+    const step2Done = application?.status === 'under_review';
     const [projectFiles, setProjectFiles] = useState<Record<number, File | null>>({});
     const [projectNotes, setProjectNotes] = useState<Record<number, string>>(() =>
         application?.assessment.project_tasks.reduce<Record<number, string>>((acc, task) => {
@@ -356,14 +355,20 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                     {/* Timeline icon */}
                                     <div
                                         className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                                            step2Active
+                                            step2Done
+                                                ? 'border-green-400 bg-green-400'
+                                                : step2Active
                                                 ? 'border-primary bg-primary shadow-[0_0_0_4px_rgba(29,68,156,0.15)]'
                                                 : 'border-gray-200 bg-gray-100'
                                         }`}
                                     >
-                                        <Lock
-                                            className={`h-4 w-4 ${step2Active ? 'text-white' : 'text-gray-400'}`}
-                                        />
+                                        {step2Done ? (
+                                            <CheckCircle2 className="h-5 w-5 text-white" />
+                                        ) : (
+                                            <Lock
+                                                className={`h-4 w-4 ${step2Active ? 'text-white' : 'text-gray-400'}`}
+                                            />
+                                        )}
                                     </div>
 
                                     {/* Card */}
@@ -402,12 +407,14 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                             <div>
                                                 <span
                                                     className={`mb-2 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-widest uppercase ${
-                                                        canSubmitProject
+                                                        step2Done
+                                                            ? 'bg-green-50 text-green-600'
+                                                            : canSubmitProject
                                                             ? 'bg-blue-50 text-primary'
                                                             : 'bg-green-50 text-green-600'
                                                     }`}
                                                 >
-                                                    {canSubmitProject ? 'Tahap Aktif' : 'Tahap Selesai'}
+                                                    {step2Done ? 'Selesai' : canSubmitProject ? 'Tahap Aktif' : 'Tahap Selesai'}
                                                 </span>
                                                 <h2 className="text-lg font-bold text-gray-800">
                                                     Tahap 2: Project Simulasi

@@ -18,8 +18,7 @@ class AssesmentController extends Controller
     public function index(Request $request): Response
     {
         $candidate = $request->user();
-        
-
+    
         return Inertia::render('assesment/list-assesment', $this->assesmentService->getCandidateAssessments($candidate));
     }
 

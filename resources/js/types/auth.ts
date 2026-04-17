@@ -4,6 +4,7 @@ export type User = {
     email: string;
     phone?: string | null;
     cv_path?: string | null;
+    role: 'admin' | 'candidate';
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;

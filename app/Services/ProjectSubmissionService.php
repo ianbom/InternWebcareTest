@@ -43,15 +43,6 @@ class ProjectSubmissionService
                 'submitted_at' => $submittedAt,
             ]);
 
-            $remainingDrafts = $application->projectSubmissions()
-                ->where('id', '!=', $submission->id)
-                ->where('status', 'not_submitted')
-                ->exists();
-
-            $application->update([
-                'status' => $remainingDrafts ? 'submitted' : 'under_review',
-            ]);
-
             return $submission->fresh(['projectTask']);
         });
     }

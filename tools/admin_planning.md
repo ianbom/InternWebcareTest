@@ -1,0 +1,140 @@
+# Admin Application Pages Plan
+
+**Summary**
+- Bangun modul admin-only di bawah `/applications` dengan 2 halaman: `List Application` dan `Detail Application`.
+- `List Application` fokus ke browsing data skala besar: search, comprehensive filters, sorting, pagination, dan summary kolom penting.
+- `Detail Application` fokus ke review: lihat data kandidat, application, assessment, MCQ/essay answers, project submissions, lalu admin memberi skor essay + project, catatan, dan keputusan akhir.
+- Admin yang masuk ke `/dashboard` diarahkan ke `applications.index`; flow kandidat yang sudah ada tetap dipertahankan.
+
+**Key Changes**
+- Tambah middleware/guard admin terpisah, lalu group route baru:
+  - `GET /applications` → `applications.index`
+  - `GET /applications/{application}` → `applications.show`
+  - `PUT /applications/{application}/review` → `applications.review.update`
+- Tambah controller + service khusus admin application agar query list/detail/review tidak bercampur dengan flow kandidat.
+- Buat forward-only migrations baru, jangan ubah migration lama:
+  - `applications`: aktifkan `reviewed_by`, `reviewed_at`, `admin_notes`
+  - `answers`: aktifkan `scored_by`, `scored_at`
+  - `project_submissions`: aktifkan `scored_by`, `scored_at`
+  - tambah index untuk query admin list pada `applications.status`, `applications.position_id`, `applications.created_at`, `applications.submitted_at`
+- Definisikan query list admin dengan eager loading minimum:
+  - `candidate:id,name,email,phone`
+  - `position:id,title`
+  - optional reviewer summary bila sudah direview
+- Definisikan filter list v1 melalui query string:
+  - `search`: candidate name, email, phone, position title
+  - `status`
+  - `position_id`
+  - `applied_from`, `applied_to`
+  - `submitted_from`, `submitted_to`
+  - `min_score`, `max_score` yang memakai `applications.total_score`
+- Definisikan sorting list v1:
+  - default `created_at desc`
+  - `created_at asc`
+  - `submitted_at desc`
+  - `candidate_name asc`
+  - `position_title asc`
+  - `total_score desc`
+- Pagination default `15` item per halaman, semua filter/sort dipersist di query string agar tetap konsisten saat pindah page atau kembali dari detail.
+- Buat halaman Inertia baru:
+  - `resources/js/pages/applications/index.tsx`
+  - `resources/js/pages/applications/show.tsx`
+- Halaman list menampilkan minimal kolom:
+  - candidate name
+  - email/phone singkat
+  - position title
+  - application status
+  - auto score (`total_score`)
+  - applied date
+  - submitted date
+  - action ke detail
+- Halaman detail dibagi ke section tetap:
+  - ringkasan application
+  - data kandidat
+  - assessment summary
+  - MCQ answers read-only
+  - essay answers + input score admin
+  - project submissions + file link + input score/score notes
+  - review panel untuk `status` dan `admin_notes`
+- Review flow di detail:
+  - MCQ tetap read-only dan tetap memakai auto-score existing
+  - Essay answers bisa diberi score admin per jawaban dengan batas `0..question.point_value`
+  - Project submissions bisa diberi `score` dan `score_notes`
+  - Admin bisa menyimpan review dengan status `under_review`, `approved`, atau `rejected`
+  - Saat review disimpan, set `reviewed_by` = admin login dan `reviewed_at` = waktu simpan
+  - `total_score` tidak diubah menjadi combined score; tetap dianggap summary auto-score/assessment
+- Buat payload detail yang eksplisit agar frontend tidak menebak bentuk data:
+  - `application`: id, status, created_at, started_at, submitted_at, expires_at, total_score, admin_notes, reviewed_at
+  - `candidate`: id, name, email, phone, cv_url
+  - `position`: id, title
+  - `assessment`: id, title, duration_minutes
+  - `mcq_answers[]`: question text, candidate answer, correct answer, auto score
+  - `essay_answers[]`: answer id, question text, answer_text, point_value, score, scored_at
+  - `project_submissions[]`: submission id, task title, description, candidate notes, file_url, deadline_at, submitted_at, score, score_notes, scored_at
+- Perbarui type frontend shared auth agar `auth.user.role` tersedia, lalu buat nav/sidebar role-aware:
+  - admin melihat menu `Applications` dan `Profile`
+  - candidate tetap melihat menu yang sekarang
+  - navbar pakai nama user asli dari shared props, bukan hardcoded text
+- Setelah route baru ditambahkan, regenerate Wayfinder dan pakai helper route generated di React, bukan URL string hardcoded.
+
+**Public Interfaces / Types**
+- Route names baru:
+  - `applications.index`
+  - `applications.show`
+  - `applications.review.update`
+- Query params list:
+  - `search`
+  - `status`
+  - `position_id`
+  - `applied_from`
+  - `applied_to`
+  - `submitted_from`
+  - `submitted_to`
+  - `min_score`
+  - `max_score`
+  - `sort`
+  - `page`
+- Review update payload:
+  - `status`
+  - `admin_notes`
+  - `essay_reviews[]` berisi `answer_id`, `score`
+  - `project_reviews[]` berisi `project_submission_id`, `score`, `score_notes`
+- Tambah/rapikan TS types untuk:
+  - `AuthUser` dengan `role`
+  - `AdminApplicationListItem`
+  - `AdminApplicationFilters`
+  - `AdminApplicationDetail`
+  - `EssayReviewInput`
+  - `ProjectReviewInput`
+
+**Test Plan**
+- Feature test admin auth:
+  - guest diarahkan ke login
+  - candidate mendapat `403` untuk seluruh route admin application
+  - admin bisa akses list dan detail
+- Feature test list:
+  - search candidate/position berjalan
+  - filter status/position/date/score berjalan
+  - sorting default dan explicit sort benar
+  - pagination mengembalikan item sesuai query string
+- Feature test detail:
+  - payload Inertia memuat candidate, application, assessment, MCQ, essay, project submission sesuai relasi
+  - file URL project submission dan CV snapshot muncul saat ada data
+- Feature test review update:
+  - essay score tervalidasi terhadap `point_value`
+  - project score dan `score_notes` tersimpan
+  - `reviewed_by`, `reviewed_at`, `admin_notes`, dan status berubah sesuai input
+  - `total_score` tidak berubah menjadi combined total
+- UI smoke test minimal:
+  - list mempertahankan state filter/sort saat pindah page
+  - tombol kembali dari detail mempertahankan query list
+- Seed/test fixture:
+  - tambah helper/factory state atau setup test data untuk admin, candidate, application, essay answer, dan project submission agar skenario review mudah diuji di Pest.
+
+**Assumptions / Defaults**
+- Scope v1 hanya admin review application; belum mencakup edit data kandidat, edit soal, atau override MCQ score.
+- `approved` dan `rejected` dianggap final di UI v1; jika perlu reopen, itu di luar scope plan ini.
+- Score range di list memakai `applications.total_score` yang sudah ada, bukan gabungan MCQ + essay + project.
+- Essay review hanya menyimpan angka score; tidak menambah `score_notes` per essay answer agar schema tetap ramping.
+- Project review tetap memakai `project_submissions.score` dan `project_submissions.score_notes`.
+- Admin landing diarahkan ke list applications, jadi tidak perlu membangun admin dashboard terpisah pada fase ini.

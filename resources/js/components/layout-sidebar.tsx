@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BriefcaseBusiness,
+    ClipboardList,
     LayoutGrid,
     Lock,
     PaperclipIcon,
@@ -10,8 +11,11 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { index as applicationsIndex } from '@/routes/applications';
+import { index as assessmentsIndex } from '@/routes/assessments';
 import { index as positionsIndex } from '@/routes/positions';
 import { edit as profileEdit } from '@/routes/profile';
+import type { User } from '@/types';
 
 type SidebarItem = {
     title: string;
@@ -25,46 +29,68 @@ type LayoutSidebarProps = {
     onClose: () => void;
 };
 
-const sidebarItems: SidebarItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-        activePaths: ['/dashboard'],
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Posisi Magang',
-        href: positionsIndex().url,
-        activePaths: ['/positions'],
-        icon: BriefcaseBusiness,
-    },
-    {
-        title: 'Assesment',
-        href: '/my-assesment',
-        activePaths: ['/my-assesment'],
-        icon: PaperclipIcon,
-    },
-    {
-        title: 'Profil',
-        href: profileEdit().url,
-        activePaths: ['/settings/profile', '/profile'],
-        icon: UserRound,
-    },
-];
-
 type SidebarBodyProps = {
+    homeHref: string;
+    items: SidebarItem[];
     pathname: string;
+    role?: User['role'];
     onNavigate?: () => void;
 };
 
-function SidebarBody({ pathname, onNavigate }: SidebarBodyProps) {
+function getSidebarItems(role?: User['role']): SidebarItem[] {
+    if (role === 'admin') {
+        return [
+            {
+                title: 'Applications',
+                href: applicationsIndex().url,
+                activePaths: ['/applications'],
+                icon: ClipboardList,
+            },
+            {
+                title: 'Profil',
+                href: profileEdit().url,
+                activePaths: ['/settings/profile', '/profile'],
+                icon: UserRound,
+            },
+        ];
+    }
+
+    return [
+        {
+            title: 'Dashboard',
+            href: dashboard().url,
+            activePaths: ['/dashboard'],
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Posisi Magang',
+            href: positionsIndex().url,
+            activePaths: ['/positions'],
+            icon: BriefcaseBusiness,
+        },
+        {
+            title: 'Assesment',
+            href: assessmentsIndex().url,
+            activePaths: ['/my-assesment'],
+            icon: PaperclipIcon,
+        },
+        {
+            title: 'Profil',
+            href: profileEdit().url,
+            activePaths: ['/settings/profile', '/profile'],
+            icon: UserRound,
+        },
+    ];
+}
+
+function SidebarBody({ homeHref, items, pathname, role, onNavigate }: SidebarBodyProps) {
     const handleNavigate = () => {
         onNavigate?.();
     };
 
     return (
         <>
-            <Link href={dashboard()} className="mb-5 flex items-center gap-2.5 px-1.5" onClick={handleNavigate}>
+            <Link href={homeHref} className="mb-5 flex items-center gap-2.5 px-1.5" onClick={handleNavigate}>
                 <div className="grid grid-cols-2 gap-1.5">
                     {Array.from({ length: 4 }).map((_, index) => (
                         <span key={index} className="size-2.5 rounded-[4px] bg-[#1D449C]" />
@@ -77,7 +103,7 @@ function SidebarBody({ pathname, onNavigate }: SidebarBodyProps) {
 
             <nav className="flex-1">
                 <ul className="space-y-1.5">
-                    {sidebarItems.map((item) => {
+                    {items.map((item) => {
                         const Icon = item.icon;
                         const isActive = item.activePaths.some((path) =>
                             path === '/'
@@ -115,7 +141,9 @@ function SidebarBody({ pathname, onNavigate }: SidebarBodyProps) {
                     <Lock className="size-4" />
                 </div>
                 <p className="text-xs leading-4 text-[#EAECEF]">
-                    Pantau progres seleksi, selesaikan assessment tepat waktu, dan lengkapi profilmu.
+                    {role === 'admin'
+                        ? 'Review application, nilai essay dan project, lalu tetapkan keputusan akhir kandidat.'
+                        : 'Pantau progres seleksi, selesaikan assessment tepat waktu, dan lengkapi profilmu.'}
                 </p>
                 <div className="pointer-events-none absolute bottom-0 right-0 size-20 translate-x-5 translate-y-5 rounded-full bg-[#3D72D1]/45" />
                 <div className="pointer-events-none absolute bottom-6 right-7 size-5 rounded-full bg-[#FFFFFF]/30" />
@@ -125,8 +153,12 @@ function SidebarBody({ pathname, onNavigate }: SidebarBodyProps) {
 }
 
 export function LayoutSidebar({ isMobileOpen, onClose }: LayoutSidebarProps) {
-    const { url } = usePage();
-    const pathname = url.split('?')[0];
+    const page = usePage();
+    const { auth } = page.props;
+    const pathname = page.url.split('?')[0];
+    const role = auth.user?.role;
+    const sidebarItems = getSidebarItems(role);
+    const homeHref = role === 'admin' ? applicationsIndex().url : dashboard().url;
 
     return (
         <>
@@ -152,11 +184,22 @@ export function LayoutSidebar({ isMobileOpen, onClose }: LayoutSidebarProps) {
                 >
                     <X className="size-4" />
                 </button>
-                <SidebarBody pathname={pathname} onNavigate={onClose} />
+                <SidebarBody
+                    homeHref={homeHref}
+                    items={sidebarItems}
+                    pathname={pathname}
+                    role={role}
+                    onNavigate={onClose}
+                />
             </aside>
 
             <aside className="top-0 hidden h-full shrink-0 flex-col bg-[#C7CADD] p-4 lg:sticky lg:flex lg:h-screen lg:rounded-r-[24px]">
-                <SidebarBody pathname={pathname} />
+                <SidebarBody
+                    homeHref={homeHref}
+                    items={sidebarItems}
+                    pathname={pathname}
+                    role={role}
+                />
             </aside>
         </>
     );

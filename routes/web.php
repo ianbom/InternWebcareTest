@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminApplicationController;
 use App\Http\Controllers\AssesmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PositionController;
@@ -13,6 +14,13 @@ Route::inertia('/', 'welcome', [
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::middleware('admin')->group(function () {
+        Route::get('applications', [AdminApplicationController::class, 'index'])->name('applications.index');
+        Route::get('applications/{application}', [AdminApplicationController::class, 'show'])->name('applications.show');
+        Route::put('applications/{application}/review', [AdminApplicationController::class, 'updateReview'])->name('applications.review.update');
+    });
+
     Route::get('positions', [PositionController::class, 'index'])->name('positions.index');
     Route::post('positions/{position}/apply', [PositionController::class, 'applyPosition'])->name('positions.apply');
     Route::get('my-assesment', [AssesmentController::class, 'index'])->name('assessments.index');

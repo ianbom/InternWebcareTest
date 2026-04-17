@@ -241,7 +241,7 @@ export default function Dashboard({ candidate, application }: Props) {
                                             rel="noreferrer"
                                             className="break-all font-medium text-[#0E3F97] underline decoration-[#C3D2F7] underline-offset-4 transition-colors hover:text-[#0B3682]"
                                         >
-                                            {candidate.cv.name}
+                                            Lihat CV
                                         </a>
                                     ) : (
                                         <p className="font-medium text-[#0F1E46]">
