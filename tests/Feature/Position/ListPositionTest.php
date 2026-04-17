@@ -46,12 +46,15 @@ test('candidate can view active positions in card listing page', function () {
         );
 });
 
-test('admin cannot access candidate positions page', function () {
+test('admin can access role aware positions management page', function () {
     $admin = User::factory()->create([
         'role' => 'admin',
     ]);
 
     $this->actingAs($admin)
         ->get(route('positions.index'))
-        ->assertForbidden();
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('position/index'),
+        );
 });

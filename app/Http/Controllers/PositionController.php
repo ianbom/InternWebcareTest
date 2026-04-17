@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Position\StorePositionRequest;
+use App\Http\Requests\Position\UpdatePositionRequest;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\PositionService;
@@ -16,6 +18,10 @@ class PositionController extends Controller
 
     public function index(Request $request): Response
     {
+        if ($request->user()?->role === 'admin') {
+            return Inertia::render('position/index', $this->positionService->getAdminPositionListing($request->query()));
+        }
+
         $candidate = $this->authenticatedCandidate($request);
 
         $listing = $this->positionService->getCandidatePositionListing($candidate);
@@ -24,6 +30,33 @@ class PositionController extends Controller
             'positions' => collect($listing['positions'])->values()->all(),
             'hasAppliedPosition' => (bool) ($listing['hasAppliedPosition'] ?? false),
         ]);
+    }
+
+    public function store(StorePositionRequest $request): RedirectResponse
+    {
+        /** @var User $admin */
+        $admin = $request->user();
+
+        $this->positionService->createPosition($request->validated(), $admin);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Position berhasil dibuat.',
+        ]);
+
+        return to_route('positions.index');
+    }
+
+    public function update(UpdatePositionRequest $request, Position $position): RedirectResponse
+    {
+        $this->positionService->updatePosition($position, $request->validated());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Position berhasil diperbarui.',
+        ]);
+
+        return to_route('positions.index');
     }
 
     public function applyPosition(Request $request, Position $position): RedirectResponse

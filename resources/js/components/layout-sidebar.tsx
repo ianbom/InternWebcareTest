@@ -12,7 +12,10 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index as applicationsIndex } from '@/routes/applications';
-import { index as assessmentsIndex } from '@/routes/assessments';
+import {
+    index as assessmentsIndex,
+    list as assessmentsList,
+} from '@/routes/assessments';
 import { index as positionsIndex } from '@/routes/positions';
 import { edit as profileEdit } from '@/routes/profile';
 import type { User } from '@/types';
@@ -41,13 +44,25 @@ function getSidebarItems(role?: User['role']): SidebarItem[] {
     if (role === 'admin') {
         return [
             {
-                title: 'Applications',
-                href: applicationsIndex().url,
-                activePaths: ['/applications'],
+                title: 'Positions',
+                href: positionsIndex().url,
+                activePaths: ['/positions'],
+                icon: BriefcaseBusiness,
+            },
+            {
+                title: 'Assessments',
+                href: assessmentsList().url,
+                activePaths: ['/assessments'],
                 icon: ClipboardList,
             },
             {
-                title: 'Profil',
+                title: 'Applications',
+                href: applicationsIndex().url,
+                activePaths: ['/applications'],
+                icon: PaperclipIcon,
+            },
+            {
+                title: 'Profile',
                 href: profileEdit().url,
                 activePaths: ['/settings/profile', '/profile'],
                 icon: UserRound,
@@ -83,17 +98,30 @@ function getSidebarItems(role?: User['role']): SidebarItem[] {
     ];
 }
 
-function SidebarBody({ homeHref, items, pathname, role, onNavigate }: SidebarBodyProps) {
+function SidebarBody({
+    homeHref,
+    items,
+    pathname,
+    role,
+    onNavigate,
+}: SidebarBodyProps) {
     const handleNavigate = () => {
         onNavigate?.();
     };
 
     return (
         <>
-            <Link href={homeHref} className="mb-5 flex items-center gap-2.5 px-1.5" onClick={handleNavigate}>
+            <Link
+                href={homeHref}
+                className="mb-5 flex items-center gap-2.5 px-1.5"
+                onClick={handleNavigate}
+            >
                 <div className="grid grid-cols-2 gap-1.5">
                     {Array.from({ length: 4 }).map((_, index) => (
-                        <span key={index} className="size-2.5 rounded-[4px] bg-[#1D449C]" />
+                        <span
+                            key={index}
+                            className="size-2.5 rounded-[4px] bg-[#1D449C]"
+                        />
                     ))}
                 </div>
                 <span className="text-[24px] font-extrabold tracking-tight text-[#1D449C]">
@@ -108,13 +136,16 @@ function SidebarBody({ homeHref, items, pathname, role, onNavigate }: SidebarBod
                         const isActive = item.activePaths.some((path) =>
                             path === '/'
                                 ? pathname === '/'
-                                : pathname === path || pathname.startsWith(`${path}/`),
+                                : pathname === path ||
+                                  pathname.startsWith(`${path}/`),
                         );
 
                         const itemContent = (
                             <>
                                 <Icon className="size-4" />
-                                <span className="flex-1 truncate text-[15px]">{item.title}</span>
+                                <span className="flex-1 truncate text-[15px]">
+                                    {item.title}
+                                </span>
                             </>
                         );
 
@@ -127,7 +158,11 @@ function SidebarBody({ homeHref, items, pathname, role, onNavigate }: SidebarBod
 
                         return (
                             <li key={item.title}>
-                                <Link href={item.href} className={itemClassName} onClick={handleNavigate}>
+                                <Link
+                                    href={item.href}
+                                    className={itemClassName}
+                                    onClick={handleNavigate}
+                                >
                                     {itemContent}
                                 </Link>
                             </li>
@@ -145,8 +180,8 @@ function SidebarBody({ homeHref, items, pathname, role, onNavigate }: SidebarBod
                         ? 'Review application, nilai essay dan project, lalu tetapkan keputusan akhir kandidat.'
                         : 'Pantau progres seleksi, selesaikan assessment tepat waktu, dan lengkapi profilmu.'}
                 </p>
-                <div className="pointer-events-none absolute bottom-0 right-0 size-20 translate-x-5 translate-y-5 rounded-full bg-[#3D72D1]/45" />
-                <div className="pointer-events-none absolute bottom-6 right-7 size-5 rounded-full bg-[#FFFFFF]/30" />
+                <div className="pointer-events-none absolute right-0 bottom-0 size-20 translate-x-5 translate-y-5 rounded-full bg-[#3D72D1]/45" />
+                <div className="pointer-events-none absolute right-7 bottom-6 size-5 rounded-full bg-[#FFFFFF]/30" />
             </section>
         </>
     );
@@ -158,7 +193,7 @@ export function LayoutSidebar({ isMobileOpen, onClose }: LayoutSidebarProps) {
     const pathname = page.url.split('?')[0];
     const role = auth.user?.role;
     const sidebarItems = getSidebarItems(role);
-    const homeHref = role === 'admin' ? applicationsIndex().url : dashboard().url;
+    const homeHref = role === 'admin' ? positionsIndex().url : dashboard().url;
 
     return (
         <>
@@ -166,7 +201,9 @@ export function LayoutSidebar({ isMobileOpen, onClose }: LayoutSidebarProps) {
                 onClick={onClose}
                 className={cn(
                     'fixed inset-0 z-40 bg-[#1D449C]/40 transition-opacity duration-300 lg:hidden',
-                    isMobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
+                    isMobileOpen
+                        ? 'opacity-100'
+                        : 'pointer-events-none opacity-0',
                 )}
             />
 
@@ -180,7 +217,7 @@ export function LayoutSidebar({ isMobileOpen, onClose }: LayoutSidebarProps) {
                     type="button"
                     onClick={onClose}
                     aria-label="Tutup menu navigasi"
-                    className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-[#EAECEF] text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)]"
+                    className="absolute top-3 right-3 inline-flex size-8 items-center justify-center rounded-full bg-[#EAECEF] text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)]"
                 >
                     <X className="size-4" />
                 </button>

@@ -1,6 +1,14 @@
-import { usePage } from '@inertiajs/react';
-import { ChevronDown, Menu } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { ChevronDown, Menu, LogOut, Home } from 'lucide-react';
 import { useInitials } from '@/hooks/use-initials';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type LayoutNavbarProps = {
     onMenuClick?: () => void;
@@ -34,22 +42,42 @@ export function LayoutNavbar({ onMenuClick }: LayoutNavbarProps) {
                 </p>
             </div>
 
-            <div className="ml-auto flex items-center gap-2.5">
-                <div className="hidden items-center gap-2.5 md:flex">
-                    <span className="text-base font-semibold text-[#1D449C]">{userName}</span>
-                    <span className="inline-flex size-8 items-center justify-center rounded-full bg-[#3D72D1] text-[10px] font-bold text-[#FFFFFF]">
-                        {initials}
-                    </span>
-                </div>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <div className="ml-auto flex items-center gap-2.5 cursor-pointer outline-none group hover:opacity-80 transition-opacity">
+                        <div className="hidden items-center gap-2.5 md:flex">
+                            <span className="text-base font-semibold text-[#1D449C]">{userName}</span>
+                            <span className="inline-flex size-8 items-center justify-center rounded-full bg-[#3D72D1] text-[10px] font-bold text-[#FFFFFF]">
+                                {initials}
+                            </span>
+                        </div>
 
-                <button
-                    type="button"
-                    className="inline-flex items-center gap-1 rounded-full bg-[#EAECEF] px-2 py-1.5 text-[11px] font-semibold text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)] md:hidden"
-                >
-                    {userName}
-                    <ChevronDown className="size-3.5" />
-                </button>
-            </div>
+                        <button
+                            type="button"
+                            className="inline-flex items-center gap-1 rounded-full bg-[#EAECEF] px-2 py-1.5 text-[11px] font-semibold text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)] md:hidden outline-none"
+                        >
+                            {userName}
+                            <ChevronDown className="size-3.5" />
+                        </button>
+                    </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-white border border-[#C7CADD]/50 rounded-xl shadow-lg mt-1">
+                    <DropdownMenuLabel className="font-semibold text-[#102B5C] py-2">Akun Saya</DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-[#EAECEF]" />
+                    <DropdownMenuItem asChild className="cursor-pointer py-2 hover:bg-[#F0F5FF]">
+                        <Link href="/">
+                            <Home className="mr-2 size-4 text-[#1D449C]" />
+                            <span className="text-[#102B5C] font-medium">Home</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer py-2 hover:bg-rose-50 text-rose-600 focus:text-rose-700">
+                        <Link href="/logout" method="post" as="button" className="w-full text-left">
+                            <LogOut className="mr-2 size-4" />
+                            <span className="font-medium">Logout</span>
+                        </Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </header>
     );
 }
