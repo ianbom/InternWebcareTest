@@ -131,6 +131,14 @@ class AssesmentController extends Controller
         // Ensure this application belongs to the authenticated candidate
         abort_unless($application->candidate_id === $request->user()->id, 403);
 
+        if ($application->status === 'in_progress') {
+            return redirect()->route('assessments.take', $application);
+        }
+
+        if ($application->status !== 'pending') {
+            return to_route('assessments.index');
+        }
+
         // Start the assessment
         $this->assesmentService->takeAssesment($application);
 
@@ -141,10 +149,14 @@ class AssesmentController extends Controller
      * Take / continue the assessment (take-assesment page).
      * Only the owning candidate may access this page.
      */
-    public function take(Request $request, Application $application): Response
+    public function take(Request $request, Application $application): Response|RedirectResponse
     {
         // Ensure this application belongs to the authenticated candidate
         abort_unless($application->candidate_id === $request->user()->id, 403);
+
+        if ($application->status !== 'in_progress') {
+            return to_route('assessments.index');
+        }
 
         return Inertia::render('assesment/take-assesment', $this->assesmentService->getAssessmentForCandidate($application));
     }
@@ -156,7 +168,7 @@ class AssesmentController extends Controller
     {
         abort_unless($application->candidate_id === $request->user()->id, 403);
 
-        if (in_array($application->status, ['submitted', 'under_review', 'approved', 'rejected'], true)) {
+        if ($application->status !== 'in_progress') {
             return to_route('assessments.index');
         }
 
