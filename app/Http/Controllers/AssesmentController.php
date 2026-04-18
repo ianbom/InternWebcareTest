@@ -32,7 +32,7 @@ class AssesmentController extends Controller
         }
 
         $candidate = $request->user();
-        abort_unless($candidate?->role === 'candidate', 403);
+        // abort_unless($candidate?->role === 'candidate', 403);
 
         return Inertia::render('assesment/list-assesment', $this->assesmentService->getCandidateAssessments($candidate));
     }
