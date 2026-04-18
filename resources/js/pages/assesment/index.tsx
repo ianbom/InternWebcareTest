@@ -1,7 +1,6 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
     ArrowUpDown,
-    ClipboardList,
     Edit3,
     Eye,
     Filter,
@@ -51,8 +50,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { FieldError } from '@/pages/shared/FieldError';
 import {
-    list as assessmentsList,
     show as assessmentsShow,
     store as assessmentsStore,
     update as assessmentsUpdate,
@@ -65,6 +64,14 @@ import type {
     PositionOption,
     SelectOption,
 } from '@/types';
+import { AssessmentEmptyState } from './components/admin/AssessmentEmptyState';
+import { AssessmentHero } from './components/admin/AssessmentHero';
+import { useAssessmentFilters } from './hooks/useAssessmentFilters';
+import {
+    EMPTY_ASSESSMENT_FORM,
+    formatDate,
+    paginationLabel,
+} from './utils/assessment-format';
 
 type Props = {
     assessments: Paginated<AssessmentListItem>;
@@ -73,101 +80,28 @@ type Props = {
     sortOptions: SelectOption[];
 };
 
-const EMPTY_FORM: AssessmentFormData = {
-    position_id: '',
-    title: '',
-    duration_minutes: '60',
-};
-
-function cleanQuery(filters: AssessmentFilters): Record<string, string> {
-    return Object.fromEntries(
-        Object.entries(filters).filter(([, value]) => value !== ''),
-    );
-}
-
-function formatDate(value: string | null): string {
-    if (!value) {
-        return '-';
-    }
-
-    return new Intl.DateTimeFormat('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    }).format(new Date(value));
-}
-
-function paginationLabel(label: string): string {
-    return label
-        .replace('&laquo; Previous', 'Prev')
-        .replace('Next &raquo;', 'Next')
-        .replace('&laquo;', '')
-        .replace('&raquo;', '')
-        .trim();
-}
-
-function FieldError({ message }: { message?: string }) {
-    return message ? (
-        <p className="text-xs font-semibold text-rose-600">{message}</p>
-    ) : null;
-}
-
 export default function AssessmentIndex({
     assessments,
     filters,
     positionOptions,
     sortOptions,
 }: Props) {
-    const [draftFilters, setDraftFilters] =
-        useState<AssessmentFilters>(filters);
+    const { applyFilters, draftFilters, resetFilters, setDraftFilters } =
+        useAssessmentFilters(filters);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingAssessment, setEditingAssessment] =
         useState<AssessmentListItem | null>(null);
     const { data, setData, post, put, processing, errors, clearErrors } =
-        useForm<AssessmentFormData>(EMPTY_FORM);
+        useForm<AssessmentFormData>(EMPTY_ASSESSMENT_FORM);
 
     const selectedSort =
         sortOptions.find((option) => option.value === filters.sort)?.label ??
         filters.sort;
-    const totalQuestions = assessments.data.reduce(
-        (total, assessment) => total + assessment.questions_count,
-        0,
-    );
-    const totalProjectTasks = assessments.data.reduce(
-        (total, assessment) => total + assessment.project_tasks_count,
-        0,
-    );
-
-    const applyFilters = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        router.get(
-            assessmentsList.url({ query: cleanQuery(draftFilters) }),
-            {},
-            {
-                preserveScroll: true,
-                preserveState: true,
-            },
-        );
-    };
-
-    const resetFilters = () => {
-        const nextFilters: AssessmentFilters = {
-            search: '',
-            position_id: '',
-            duration_min: '',
-            duration_max: '',
-            sort: 'created_at_desc',
-        };
-
-        setDraftFilters(nextFilters);
-        router.get(assessmentsList.url(), {}, { preserveScroll: true });
-    };
-
     const openCreateDialog = () => {
         setEditingAssessment(null);
         clearErrors();
         setData({
-            ...EMPTY_FORM,
+            ...EMPTY_ASSESSMENT_FORM,
             position_id: positionOptions[0]?.id
                 ? String(positionOptions[0].id)
                 : '',
@@ -190,7 +124,7 @@ export default function AssessmentIndex({
         setIsDialogOpen(false);
         setEditingAssessment(null);
         clearErrors();
-        setData({ ...EMPTY_FORM });
+        setData({ ...EMPTY_ASSESSMENT_FORM });
     };
 
     const submitAssessment = (event: FormEvent<HTMLFormElement>) => {
@@ -211,23 +145,11 @@ export default function AssessmentIndex({
             <Head title="Assessments" />
             <div className="min-h-screen p-4 sm:p-6">
                 <div className="mx-auto max-w-7xl space-y-6">
-                    <section className="overflow-hidden rounded-[32px] bg-[#102B5C] text-white shadow-[0_28px_80px_rgba(16,43,92,0.24)]">
-                        <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-8">
-                            <div>
-                                <p className="text-xs font-bold tracking-[0.28em] text-[#8FB4FF] uppercase">
-                                    Assessment Studio
-                                </p>
-                                <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
-                                    Assessment Management
-                                </h1>
-                                <p className="mt-4 max-w-2xl text-sm leading-6 text-blue-100">
-                                    Buat assessment per position, atur durasi,
-                                    lalu kelola question dan project task dari
-                                    detail.
-                                </p>
-                            </div>
-                        </div>
-                    </section>
+                    <AssessmentHero
+                        description="Buat assessment per position, atur durasi, lalu kelola question dan project task dari detail."
+                        eyebrow="Assessment Studio"
+                        title="Assessment Management"
+                    />
 
                     <Card className="rounded-[28px] border-[#DCE3F2] shadow-[0_18px_60px_rgba(16,43,92,0.08)]">
                         <CardHeader className="gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -482,14 +404,8 @@ export default function AssessmentIndex({
                                 </Table>
 
                                 {assessments.data.length === 0 && (
-                                    <div className="px-5 py-16 text-center">
-                                        <p className="text-lg font-black text-[#102B5C]">
-                                            Assessment tidak ditemukan
-                                        </p>
-                                        <p className="mt-2 text-sm text-[#6B7894]">
-                                            Ubah filter atau buat assessment
-                                            baru.
-                                        </p>
+                                    <div className="px-5 py-16">
+                                        <AssessmentEmptyState text="Assessment tidak ditemukan. Ubah filter atau buat assessment baru." />
                                     </div>
                                 )}
                             </div>

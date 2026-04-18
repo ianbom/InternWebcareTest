@@ -100,8 +100,13 @@ function LinkDialog({
     const [url, setUrl] = useState(initialUrl);
 
     const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') { e.preventDefault(); onConfirm(url); }
-        if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+        if (e.key === 'Enter') {
+ e.preventDefault(); onConfirm(url); 
+}
+
+        if (e.key === 'Escape') {
+ e.preventDefault(); onCancel(); 
+}
     };
 
     return (
@@ -170,7 +175,10 @@ export function RichTextEditor({
 
     // Sync external value changes (e.g. when opening edit dialog)
     useEffect(() => {
-        if (!editor) return;
+        if (!editor) {
+return;
+}
+
         if (value !== editor.getHTML()) {
             editor.commands.setContent(value || '<p></p>', { emitUpdate: false });
         }
@@ -183,10 +191,14 @@ export function RichTextEditor({
 
     const confirmLink = useCallback((url: string) => {
         setShowLinkDialog(false);
-        if (!editor) return;
+
+        if (!editor) {
+return;
+}
 
         if (!url) {
             editor.chain().focus().extendMarkRange('link').unsetLink().run();
+
             return;
         }
 
@@ -200,12 +212,20 @@ export function RichTextEditor({
     }, [editor]);
 
     const openLinkInTab = useCallback(() => {
-        if (!editor) return;
+        if (!editor) {
+return;
+}
+
         const href = editor.getAttributes('link').href as string | undefined;
-        if (href) window.open(href, '_blank', 'noopener,noreferrer');
+
+        if (href) {
+window.open(href, '_blank', 'noopener,noreferrer');
+}
     }, [editor]);
 
-    if (!editor) return null;
+    if (!editor) {
+return null;
+}
 
     const isLinkActive = editor.isActive('link');
     const currentHref = editor.getAttributes('link').href as string | undefined;

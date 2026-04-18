@@ -1,67 +1,17 @@
 import { Head, Link } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import {
-    Globe, ChevronDown, ChevronRight, ArrowRight,
-    Code2, PenTool, BarChart3, Megaphone, Search,
-    CheckCircle, Users, Star, Clock, BookOpen,
-    Briefcase, MapPin, Calendar, Award, Zap, Heart,
+    Globe, ChevronDown, ChevronRight,
+    Code2, PenTool, BarChart3, Megaphone,
+    CheckCircle, Users, Star,
+    Briefcase, Calendar, Award, Zap, Heart,
     GraduationCap, Rocket, Target, MessageSquare,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { WelcomeNavbar } from './welcome/components/WelcomeNavbar';
+import { fadeIn, fadeUp, stagger } from './welcome/utils/motion';
 
 // ─── Google Fonts: Plus Jakarta Sans ─────────────────────────────────────────
 const fontLink = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap";
-
-// ─── Animation Variants ───────────────────────────────────────────────────────
-const fadeUp = {
-    hidden: { opacity: 0, y: 32 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.75, ease: 'easeOut' } },
-};
-const fadeIn = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.6 } },
-};
-const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.1 } },
-};
-
-// ─── Navbar ───────────────────────────────────────────────────────────────────
-const Navbar = () => (
-    <motion.nav
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="flex items-center justify-between py-5 px-8 lg:px-16 max-w-[1400px] mx-auto w-full relative z-50"
-    >
-        <div className="flex items-center gap-2.5 cursor-pointer">
-            <div className="bg-gradient-to-br from-[#0E3F97] to-[#1B52B8] p-2 rounded-xl shadow-[0_8px_20px_rgba(14,63,151,0.35)]">
-                <Globe className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-extrabold text-[#0F1E46] tracking-tight">Webcare.idn</span>
-            <span className="ml-2 bg-[#E8EEF9] text-[#0E3F97] text-[11px] font-bold px-2.5 py-0.5 rounded-full tracking-wide uppercase">Internship</span>
-        </div>
-
-        <div className="hidden lg:flex items-center gap-8 text-[14px] font-semibold text-[#65708C]">
-            {['Program', 'Manfaat', 'Kurikulum', 'Testimoni', 'FAQ'].map((item) => (
-                <a key={item} href={`#${item.toLowerCase()}`} className="hover:text-[#0E3F97] transition-colors duration-200">
-                    {item}
-                </a>
-            ))}
-        </div>
-
-        <div className="flex items-center gap-4 text-[14px] font-semibold">
-            <Link href="/login" className="text-[#65708C] hover:text-[#0E3F97] transition-colors hidden md:block">
-                Login
-            </Link>
-            <a
-                href="#daftar"
-                className="bg-gradient-to-r from-[#0E3F97] to-[#1B52B8] text-white px-6 py-2.5 rounded-xl shadow-[0_8px_20px_rgba(14,63,151,0.3)] hover:shadow-[0_12px_28px_rgba(14,63,151,0.45)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
-            >
-                Daftar Sekarang <ArrowRight className="w-4 h-4" />
-            </a>
-        </div>
-    </motion.nav>
-);
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const tracks = [
@@ -122,7 +72,7 @@ const faqs = [
     { q: 'Siapa yang bisa mendaftar program magang ini?', a: 'Mahasiswa aktif semester 3 ke atas dari semua jurusan, baik teknik, desain, bisnis, maupun ilmu komunikasi.' },
     { q: 'Apakah ada uang saku atau kompensasi?', a: 'Terdapat apresiasi berbasis performa untuk intern yang menyelesaikan program dengan baik. Detail akan diinformasikan saat interview.' },
     { q: 'Apakah bisa dilakukan secara remote?', a: 'Ya! Kami membuka opsi magang hybrid (remote & onsite di Malang). Sebagian besar aktivitas dapat dilakukan secara online.' },
-    { q: 'Berapa lama durasi program magang?', a: 'Durasi standar 3 bulan (12 minggu). Kami juga membuka opsi 1-2 bulan disesuaikan kebutuhan akademik.' },
+    { q: 'Berapa lama durasi program magang?', a: 'Durasi standar 3-6 bulan disesuaikan kebutuhan akademik.' },
     { q: 'Apakah tersedia surat keterangan resmi?', a: 'Tentu! Kami menerbitkan surat keterangan magang, sertifikat kelulusan, dan dapat membantu penyediaan dokumen akademik yang diperlukan.' },
 ];
 
@@ -141,7 +91,7 @@ export default function Welcome() {
 
             {/* ── Header Nav ────────────────────────────────────────────── */}
             <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#E3E8F2] shadow-sm">
-                <Navbar />
+                <WelcomeNavbar />
             </div>
 
             {/* ── Hero ──────────────────────────────────────────────────── */}
@@ -165,11 +115,7 @@ export default function Welcome() {
                         className="w-full lg:w-1/2"
                         initial="hidden" animate="visible" variants={stagger}
                     >
-                        <motion.div variants={fadeUp} className="flex items-center gap-3 mb-6">
-                            <span className="bg-[#E8EEF9] text-[#0E3F97] text-xs font-bold px-3 py-1.5 rounded-full tracking-widest uppercase flex items-center gap-1.5">
-                                <Zap className="w-3 h-3" /> Batch 2026 · Pendaftaran Dibuka
-                            </span>
-                        </motion.div>
+                      
 
                         <motion.h1 variants={fadeUp} className="text-5xl lg:text-[62px] font-extrabold leading-[1.1] tracking-tight mb-6">
                             Mulai Karirmu{' '}
@@ -182,7 +128,7 @@ export default function Welcome() {
                         </motion.h1>
 
                         <motion.p variants={fadeUp} className="text-[#65708C] text-lg leading-relaxed max-w-lg mb-10">
-                            Program internship intensif 3 bulan di <strong className="text-[#0F1E46]">Webcare.idn</strong>. Kerjakan proyek klien nyata, miliki portfolio kuat, dan dapatkan sertifikat yang diakui industri.
+                            Program internship intensif 3-6 bulan di <strong className="text-[#0F1E46]">Webcare.idn</strong>. Kerjakan proyek klien nyata, miliki portfolio kuat, dan dapatkan sertifikat yang diakui industri.
                         </motion.p>
 
                         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4 mb-12">
@@ -239,35 +185,6 @@ export default function Welcome() {
                                 src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800"
                                 className="w-full h-full object-cover" alt="Mentoring session"
                             />
-                        </motion.div>
-
-                        {/* Floating badge: next batch */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.6, delay: 0.8 }}
-                            className="absolute bottom-[200px] right-6 bg-white rounded-2xl shadow-[0_16px_40px_rgba(14,63,151,0.14)] border border-[#E3E8F2] px-5 py-4 flex flex-col gap-1"
-                        >
-                            <div className="flex items-center gap-2 text-xs font-bold text-[#7A849B] uppercase tracking-wide">
-                                <Calendar className="w-3.5 h-3.5 text-[#0E3F97]" /> Batch Berikutnya
-                            </div>
-                            <div className="text-lg font-extrabold text-[#0F1E46]">Mei 2026</div>
-                            <div className="text-[11px] font-semibold text-[#0E3F97] flex items-center gap-1 mt-0.5">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                Pendaftaran Dibuka
-                            </div>
-                        </motion.div>
-
-                        {/* Floating badge: slots */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.6, delay: 1.0 }}
-                            className="absolute top-[200px] left-4 bg-[#0E3F97] rounded-2xl shadow-[0_16px_40px_rgba(14,63,151,0.3)] px-5 py-4 flex items-center gap-3"
-                        >
-                            <Users className="w-6 h-6 text-white/80" />
-                            <div>
-                                <div className="text-xl font-extrabold text-white">20 Slot</div>
-                                <div className="text-xs font-semibold text-blue-200">Tersisa Terbatas</div>
-                            </div>
                         </motion.div>
                     </div>
                 </div>
@@ -379,7 +296,7 @@ export default function Welcome() {
             </section>
 
             {/* ── Curriculum Timeline ───────────────────────────────────── */}
-            <section id="kurikulum" className="py-24 bg-white">
+            {/* <section id="kurikulum" className="py-24 bg-white">
                 <div className="max-w-[900px] mx-auto px-8 lg:px-16">
                     <motion.div
                         initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
@@ -397,7 +314,7 @@ export default function Welcome() {
                     </motion.div>
 
                     <div className="relative">
-                        {/* Vertical line */}
+                  
                         <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-[#E3E8F2] hidden sm:block" />
 
                         <motion.div
@@ -406,7 +323,7 @@ export default function Welcome() {
                         >
                             {curriculum.map((item, i) => (
                                 <motion.div variants={fadeUp} key={i} className="relative flex gap-6 sm:pl-16">
-                                    {/* Timeline dot */}
+                                   
                                     <div className="hidden sm:flex absolute left-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#0E3F97] to-[#1B52B8] items-center justify-center text-white text-xs font-extrabold shadow-[0_4px_14px_rgba(14,63,151,0.3)] shrink-0">
                                         {String(i + 1).padStart(2, '0')}
                                     </div>
@@ -420,10 +337,10 @@ export default function Welcome() {
                         </motion.div>
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             {/* ── Testimonials ──────────────────────────────────────────── */}
-            <section id="testimoni" className="py-24 bg-[#F5F7FB]">
+            {/* <section id="testimoni" className="py-24 bg-[#F5F7FB]">
                 <div className="max-w-[1400px] mx-auto px-8 lg:px-16">
                     <motion.div
                         initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
@@ -449,7 +366,6 @@ export default function Welcome() {
                                 variants={fadeUp} key={i}
                                 className="bg-white rounded-2xl p-8 border border-[#E3E8F2] shadow-sm hover:shadow-[0_20px_50px_rgba(14,63,151,0.1)] hover:-translate-y-1.5 transition-all duration-400 flex flex-col"
                             >
-                                {/* Stars */}
                                 <div className="flex gap-1 mb-5">
                                     {Array.from({ length: 5 }).map((_, j) => (
                                         <Star key={j} className="w-4 h-4 text-amber-400 fill-amber-400" />
@@ -473,7 +389,7 @@ export default function Welcome() {
                         ))}
                     </motion.div>
                 </div>
-            </section>
+            </section> */}
 
             {/* ── CTA: Daftar ───────────────────────────────────────────── */}
             <section id="daftar" className="py-24 bg-gradient-to-br from-[#0E3F97] to-[#1B52B8] relative overflow-hidden">
@@ -568,10 +484,7 @@ export default function Welcome() {
                         {/* Brand */}
                         <div className="max-w-xs">
                             <div className="flex items-center gap-2 mb-4">
-                                <div className="bg-gradient-to-br from-[#1B52B8] to-[#78A0FF] p-1.5 rounded-lg">
-                                    <Globe className="w-5 h-5 text-white" />
-                                </div>
-                                <span className="text-xl font-extrabold text-white">Webcare.idn</span>
+                                <img src="/img/HomeWebcare.png" alt="Webcare.idn Logo" className="h-[100px] lg:h-[120px] w-auto object-contain -my-10 brightness-0 invert origin-left" />
                             </div>
                             <p className="text-[#7A849B] text-sm leading-relaxed">
                                 Platform digital yang membantu UMKM naik kelas. Program internship kami hadir untuk mencetak talenta digital masa depan.

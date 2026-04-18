@@ -16,6 +16,21 @@ import {
     submit as submitAssessmentRoute,
     warn as warnAssessmentRoute,
 } from '@/routes/assessments';
+import {
+    buildTabLockKey,
+    createTabId,
+    getCsrfToken,
+    isRefreshShortcut,
+    labelOf,
+    readTabLock,
+    secondsToDisplay,
+    shouldBlockShortcut,
+    TAB_LOCK_HEARTBEAT_MS,
+    TAB_LOCK_TTL_MS,
+    writeTabLock
+    
+} from './utils/take-assessment';
+import type {AssessmentTabLock} from './utils/take-assessment';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,17 +71,6 @@ interface Props {
     projectTasks: ProjectTask[];
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function secondsToDisplay(seconds: number): string {
-    const m = Math.floor(Math.max(0, seconds) / 60)
-        .toString()
-        .padStart(2, '0');
-    const s = (Math.max(0, seconds) % 60).toString().padStart(2, '0');
-
-    return `${m}:${s}`;
-}
-
 // ─── Phase types ──────────────────────────────────────────────────────────────
 
 type Phase = 'mcq' | 'essay';
@@ -79,81 +83,6 @@ const REFRESH_WARNING_MESSAGE =
     'Jika halaman direfresh, jawaban Anda akan langsung dikumpulkan dan assessment dianggap selesai.';
 const DUPLICATE_TAB_MESSAGE =
     'Assessment ini sudah terbuka di tab lain. Tutup tab ini dan lanjutkan pengerjaan di tab pertama.';
-const TAB_LOCK_TTL_MS = 8_000;
-const TAB_LOCK_HEARTBEAT_MS = 2_000;
-
-interface AssessmentTabLock {
-    tabId: string;
-    updatedAt: number;
-}
-
-// ─── Option label helper ──────────────────────────────────────────────────────
-
-function labelOf(idx: number): string {
-    return String.fromCharCode(65 + idx); // A, B, C, D…
-}
-
-function getCsrfToken(): string {
-    return (
-        document
-            .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-            ?.getAttribute('content') ?? ''
-    );
-}
-
-function shouldBlockShortcut(event: KeyboardEvent): boolean {
-    const key = event.key.toLowerCase();
-    const withModifier = event.ctrlKey || event.metaKey;
-
-    return (
-        key === 'f12' ||
-        key === 'printscreen' ||
-        (withModifier && ['a', 'c', 'p', 's', 'u', 'v', 'x'].includes(key)) ||
-        (event.ctrlKey && event.shiftKey && ['c', 'i', 'j'].includes(key))
-    );
-}
-
-function isRefreshShortcut(event: KeyboardEvent): boolean {
-    const key = event.key.toLowerCase();
-
-    return key === 'f5' || ((event.ctrlKey || event.metaKey) && key === 'r');
-}
-
-function buildTabLockKey(applicationId: number): string {
-    return `assessment-tab-lock:${applicationId}`;
-}
-
-function createTabId(): string {
-    return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-}
-
-function readTabLock(lockKey: string): AssessmentTabLock | null {
-    try {
-        const raw = localStorage.getItem(lockKey);
-
-        if (!raw) {
-            return null;
-        }
-
-        const parsed = JSON.parse(raw) as Partial<AssessmentTabLock>;
-
-        if (!parsed.tabId || typeof parsed.updatedAt !== 'number') {
-            return null;
-        }
-
-        return {
-            tabId: parsed.tabId,
-            updatedAt: parsed.updatedAt,
-        };
-    } catch {
-        return null;
-    }
-}
-
-function writeTabLock(lockKey: string, lock: AssessmentTabLock): void {
-    localStorage.setItem(lockKey, JSON.stringify(lock));
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function TakeAssesment({

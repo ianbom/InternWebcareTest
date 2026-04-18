@@ -36,6 +36,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { FieldError } from '@/pages/shared/FieldError';
 import { list as assessmentsList } from '@/routes/assessments';
 import {
     store as taskStore,
@@ -53,6 +54,8 @@ import type {
     QuestionFormData,
     QuestionType,
 } from '@/types';
+import { AssessmentEmptyState } from './components/admin/AssessmentEmptyState';
+import { formatDateTime } from './utils/assessment-format';
 
 const EMPTY_QUESTION: QuestionFormData = {
     type: 'multiple_choice',
@@ -68,23 +71,6 @@ const EMPTY_TASK: ProjectTaskFormData = {
     description: '',
     deadline_hours: '24',
 };
-
-function FieldError({ message }: { message?: string }) {
-    return message ? (
-        <p className="text-xs font-semibold text-rose-600">{message}</p>
-    ) : null;
-}
-
-function formatDate(value: string | null): string {
-    if (!value) {
-        return '-';
-    }
-
-    return new Intl.DateTimeFormat('id-ID', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    }).format(new Date(value));
-}
 
 function formError(
     errors: Record<string, string | undefined>,
@@ -299,7 +285,7 @@ export default function AssessmentShow({
                                     </div>
                                 </div>
                                 <p className="text-xs leading-5 text-blue-100">
-                                    Updated {formatDate(assessment.updated_at)}
+                                    Updated {formatDateTime(assessment.updated_at)}
                                 </p>
                             </div>
                         </div>
@@ -388,7 +374,7 @@ export default function AssessmentShow({
                                     </article>
                                 ))}
                                 {questions.length === 0 && (
-                                    <EmptyState text="Belum ada question. Tambahkan item pertama." />
+                                    <AssessmentEmptyState text="Belum ada question. Tambahkan item pertama." />
                                 )}
                             </CardContent>
                         </Card>
@@ -449,7 +435,7 @@ export default function AssessmentShow({
                                     </article>
                                 ))}
                                 {project_tasks.length === 0 && (
-                                    <EmptyState text="Belum ada project task. Tambahkan tugas pertama." />
+                                    <AssessmentEmptyState text="Belum ada project task. Tambahkan tugas pertama." />
                                 )}
                             </CardContent>
                         </Card>
@@ -769,13 +755,5 @@ export default function AssessmentShow({
                 </DialogContent>
             </Dialog>
         </>
-    );
-}
-
-function EmptyState({ text }: { text: string }) {
-    return (
-        <div className="rounded-3xl border border-dashed border-[#C9D5EA] bg-[#F9FBFF] px-5 py-10 text-center text-sm font-semibold text-[#6B7894]">
-            {text}
-        </div>
     );
 }

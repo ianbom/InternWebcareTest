@@ -10,39 +10,14 @@ import {
 } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { index as positionsIndex } from '@/routes/positions';
-
-type StepKey = 'profile' | 'quiz' | 'project' | 'review' | 'result';
-type StatusTone = 'neutral' | 'info' | 'warning' | 'success' | 'danger';
-
-interface CandidateData {
-    name: string;
-    email: string;
-    phone: string | null;
-    cv: {
-        name: string;
-        url: string;
-    } | null;
-    profileCompletion: number;
-    hasCv: boolean;
-    avatarInitials: string;
-}
-
-interface ApplicationData {
-    positionTitle: string;
-    appliedAt: string | null;
-    status: string;
-    statusLabel: string;
-    statusTone: StatusTone;
-    activeStep: StepKey;
-    hasProjectTasks: boolean;
-    areProjectSubmissionsComplete: boolean;
-    headline: string;
-    nextActionLabel: string | null;
-    nextActionUrl: string | null;
-    nextActionMethod: 'get' | 'post' | null;
-    canOpenAssessment: boolean;
-    guidance: string;
-}
+import { DashboardHero } from './dashboard/components/DashboardHero';
+import type { ApplicationData, CandidateData } from './dashboard/types';
+import {
+    buildCvAlertMessage,
+    getStepState,
+    STATUS_PANEL_CLASSES,
+    STATUS_TONE_CLASSES,
+} from './dashboard/utils/dashboard-flow';
 
 interface Props {
     candidate: CandidateData;
@@ -57,60 +32,6 @@ const STEP_ITEMS = [
     { key: 'result', label: 'Hasil Akhir', icon: Flag },
 ] as const;
 
-const STATUS_TONE_CLASSES: Record<StatusTone, string> = {
-    neutral: 'bg-slate-100 text-slate-700',
-    info: 'bg-blue-50 text-blue-700',
-    warning: 'bg-amber-50 text-amber-700',
-    success: 'bg-emerald-50 text-emerald-700',
-    danger: 'bg-rose-50 text-rose-700',
-};
-
-const STATUS_PANEL_CLASSES: Record<StatusTone, string> = {
-    neutral: 'bg-slate-50 text-slate-700',
-    info: 'bg-blue-50 text-blue-800',
-    warning: 'bg-amber-50 text-amber-800',
-    success: 'bg-emerald-50 text-emerald-800',
-    danger: 'bg-rose-50 text-rose-800',
-};
-
-function getStepState(
-    stepKey: StepKey,
-    activeStep: StepKey,
-    hasProjectTasks: boolean,
-): 'done' | 'active' | 'pending' | 'skipped' {
-    if (stepKey === 'project' && !hasProjectTasks) {
-        return 'skipped';
-    }
-
-    const stepOrder: StepKey[] = [
-        'profile',
-        'quiz',
-        'project',
-        'review',
-        'result',
-    ];
-    const currentIndex = stepOrder.indexOf(activeStep);
-    const stepIndex = stepOrder.indexOf(stepKey);
-
-    if (stepIndex < currentIndex) {
-        return 'done';
-    }
-
-    if (stepIndex === currentIndex) {
-        return 'active';
-    }
-
-    return 'pending';
-}
-
-function buildCvAlertMessage(hasCv: boolean): string {
-    if (hasCv) {
-        return 'CV Anda sudah terunggah. Pastikan selalu update versi terbaru.';
-    }
-
-    return 'Harap unggah CV Anda terlebih dahulu. Pastikan menggunakan CV terbaru';
-}
-
 export default function Dashboard({ candidate, application }: Props) {
     const activeStep = application?.activeStep ?? 'profile';
     const showActiveApplication = Boolean(application);
@@ -124,19 +45,7 @@ export default function Dashboard({ candidate, application }: Props) {
             <div className="min-h-screen p-4 sm:p-6">
                 <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[minmax(0,1fr)_240px]">
                     <div className="space-y-5">
-                        <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-[#0E3F97] to-[#1B52B8] shadow-[0_10px_28px_rgba(15,62,148,0.25)]">
-                            <div className="grid min-h-[170px] md:grid-cols-[minmax(0,1fr)_154px]">
-                                <div className="p-7">
-                                    <h1 className="text-4xl leading-tight font-extrabold tracking-tight text-white">
-                                        Selamat Datang, {candidate.name}!
-                                    </h1>
-                                    <p className="mt-4 max-w-md text-lg leading-relaxed text-blue-100">
-                                        Satu langkah lagi menuju karir impianmu.
-                                        Mari selesaikan assessment hari ini.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <DashboardHero candidateName={candidate.name} />
 
                         <div className="rounded-3xl bg-white p-6 shadow-[0_8px_24px_rgba(19,41,89,0.08)]">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
