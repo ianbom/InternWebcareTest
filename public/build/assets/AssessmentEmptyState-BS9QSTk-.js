@@ -1,0 +1,1 @@
+import{n as e,t}from"./jsx-runtime-B99rEt_x.js";var n=e(),r=t();function i(e){let t=(0,n.c)(2),{text:i}=e,a;return t[0]===i?a=t[1]:(a=(0,r.jsx)(`div`,{className:`rounded-3xl border border-dashed border-[#C9D5EA] bg-[#F9FBFF] px-5 py-10 text-center text-sm font-semibold text-[#6B7894]`,children:i}),t[0]=i,t[1]=a),a}export{i as AssessmentEmptyState};

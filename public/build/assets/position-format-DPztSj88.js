@@ -1,0 +1,1 @@
+function e(e){return e?e.replace(/<[^>]*>/g,` `).replace(/\s+/g,` `).trim():``}function t(e){return e?new Intl.DateTimeFormat(`id-ID`,{day:`2-digit`,month:`short`,year:`numeric`}).format(new Date(e)):`-`}function n(e){return e.replace(`&laquo; Previous`,`Prev`).replace(`Next &raquo;`,`Next`).replace(`&laquo;`,``).replace(`&raquo;`,``).trim()}export{n,e as r,t};

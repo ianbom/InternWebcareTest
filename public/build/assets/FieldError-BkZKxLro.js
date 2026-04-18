@@ -1,0 +1,1 @@
+import{n as e,o as t,t as n}from"./jsx-runtime-B99rEt_x.js";var r=t({FieldError:()=>o}),i=e(),a=n();function o(e){let t=(0,i.c)(2),{message:n}=e;if(!n)return null;let r;return t[0]===n?r=t[1]:(r=(0,a.jsx)(`p`,{className:`text-xs font-semibold text-rose-600`,children:n}),t[0]=n,t[1]=r),r}export{r as n,o as t};
