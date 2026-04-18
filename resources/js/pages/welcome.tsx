@@ -4,7 +4,7 @@ import {
     Globe, ChevronDown, ChevronRight,
     Code2, PenTool, BarChart3, Megaphone,
     CheckCircle, Users, Star,
-    Briefcase, Calendar, Award, Zap, Heart,
+    Briefcase, Calendar, Award, Zap, Heart, Palette,
     GraduationCap, Rocket, Target, MessageSquare,
 } from 'lucide-react';
 import { WelcomeNavbar } from './welcome/components/WelcomeNavbar';
@@ -37,11 +37,11 @@ const tracks = [
         skills: ['SEO', 'Social Media', 'Content', 'Analytics'],
     },
     {
-        icon: <BarChart3 className="w-6 h-6 text-white" />,
+        icon: <Palette className="w-6 h-6 text-white" />,
         bg: 'from-amber-500 to-orange-600',
-        label: 'Business Development',
-        desc: 'Kembangkan kemampuan analisis pasar, presentasi klien, dan pengembangan bisnis.',
-        skills: ['BD Strategy', 'Proposal', 'Pitching', 'CRM'],
+        label: 'Graphic Designer',
+        desc: 'Wujudkan ide kreatif dalam bentuk visual yang menarik untuk berbagai kampanye digital.',
+        skills: ['Illustrator', 'Photoshop', 'Branding', 'Layouting'],
     },
 ];
 
@@ -496,8 +496,6 @@ export default function Welcome() {
                             {[
                                 { href: '#program', label: 'Program Magang' },
                                 { href: '#manfaat', label: 'Manfaat' },
-                                { href: '#kurikulum', label: 'Kurikulum' },
-                                { href: '#testimoni', label: 'Testimoni' },
                                 { href: '#daftar', label: 'Daftar Sekarang' },
                                 { href: '#faq', label: 'FAQ' },
                             ].map((link) => (
@@ -511,10 +509,10 @@ export default function Welcome() {
                         <div>
                             <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Kontak</h4>
                             <a href="https://wa.me/6285736426304" className="text-[#7A849B] hover:text-white text-sm font-semibold block mb-2 transition-colors">
-                                WhatsApp: +62 857-3642-6304
+                                📞 +62 857-3642-6304
                             </a>
                             <a href="https://webcareidn.com" className="text-[#7A849B] hover:text-white text-sm font-semibold block transition-colors">
-                                webcareidn.com
+                                🌐 webcareidn.com
                             </a>
                         </div>
                     </div>
