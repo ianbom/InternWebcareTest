@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
             $table->text('answer_text')->nullable();
             $table->decimal('score', 5, 2)->nullable();
-            // $table->foreignId('scored_by')->nullable()->constrained('users')->nullOnDelete();
-            // $table->timestamp('scored_at')->nullable();
+            $table->foreignId('scored_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('scored_at')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
 

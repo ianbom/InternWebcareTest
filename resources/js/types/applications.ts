@@ -102,6 +102,13 @@ export type AdminProjectSubmission = {
     scored_at: string | null;
 };
 
+export type AdminAssessmentWarning = {
+    id: number;
+    action: string | null;
+    description: string | null;
+    created_at: string | null;
+};
+
 export type EssayReviewInput = {
     answer_id: number;
     score: number | null;

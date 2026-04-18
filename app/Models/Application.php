@@ -66,4 +66,9 @@ class Application extends Model
     {
         return $this->hasMany(ProjectSubmission::class);
     }
+
+    public function warnings(): HasMany
+    {
+        return $this->hasMany(AssesmentWarning::class);
+    }
 }

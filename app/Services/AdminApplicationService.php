@@ -87,6 +87,7 @@ class AdminApplicationService
             'assessment:id,title,duration_minutes',
             'answers.question:id,type,question_text,correct_answer,point_value,order_index',
             'projectSubmissions.projectTask:id,title,description',
+            'warnings:id,application_id,action,description,created_at',
         ]);
 
         $answers = $application->answers
@@ -156,6 +157,16 @@ class AdminApplicationService
                     'score' => $submission->score !== null ? (float) $submission->score : null,
                     'score_notes' => $submission->score_notes,
                     'scored_at' => $submission->scored_at?->toIso8601String(),
+                ])
+                ->values()
+                ->all(),
+            'warnings' => $application->warnings
+                ->sortBy('id')
+                ->map(fn ($warning): array => [
+                    'id' => $warning->id,
+                    'action' => $warning->action,
+                    'description' => $warning->description,
+                    'created_at' => $warning->created_at?->toIso8601String(),
                 ])
                 ->values()
                 ->all(),

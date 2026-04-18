@@ -108,7 +108,7 @@ function buildCvAlertMessage(hasCv: boolean): string {
         return 'CV Anda sudah terunggah. Pastikan selalu update versi terbaru.';
     }
 
-    return 'Harap unggah CV Anda untuk meningkatkan peluang diterima hingga 70%.';
+    return 'Harap unggah CV Anda terlebih dahulu. Pastikan menggunakan CV terbaru';
 }
 
 export default function Dashboard({ candidate, application }: Props) {

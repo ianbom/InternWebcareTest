@@ -119,9 +119,8 @@ class DashboardService
     private function resolveActionUrl(Application $application): ?string
     {
         return match ($application->status) {
-            'pending' => route('assessments.start', $application),
+            'pending', 'submitted', 'under_review' => route('assessments.index'),
             'in_progress' => route('assessments.take', $application),
-            'submitted', 'under_review' => route('assessments.index'),
             default => null,
         };
     }
@@ -129,8 +128,7 @@ class DashboardService
     private function resolveActionMethod(string $status): ?string
     {
         return match ($status) {
-            'pending' => 'post',
-            'in_progress', 'submitted', 'under_review' => 'get',
+            'pending', 'in_progress', 'submitted', 'under_review' => 'get',
             default => null,
         };
     }

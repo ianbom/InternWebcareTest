@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('position_id')->constrained('positions')->cascadeOnDelete();
             $table->string('title', 150);
             $table->unsignedInteger('duration_minutes');
-            // $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
         });

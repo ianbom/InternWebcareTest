@@ -191,11 +191,87 @@ class PositionService
             ->where('is_active', true)
             ->orderBy('title')
             ->get(['id', 'title', 'description'])
-            ->map(static fn (Position $position): array => [
+            ->map(fn (Position $position): array => [
                 'id' => $position->id,
                 'title' => $position->title,
                 'description' => $position->description,
+                'employment_type' => 'Program Magang Intensif',
+                'work_type' => $this->resolveWorkType($position),
+                'work_location' => $this->resolveWorkLocation($position),
+                'work_hours' => 'Senin-Jumat, 09.00-17.00 WIB',
+                'duration' => '3-6 bulan',
+                'quota' => 'Terbatas',
+                'requirements' => $this->resolveRequirements($position),
+                'benefits' => [
+                    'Mentoring langsung bersama tim Webcare',
+                    'Pengalaman project nyata dan portfolio-ready',
+                    'Sertifikat magang setelah program selesai',
+                    'Kesempatan rekomendasi untuk role lanjutan',
+                ],
+                'selection_flow' => [
+                    'Lengkapi data diri dan CV',
+                    'Kerjakan quiz seleksi',
+                    'Kerjakan project jika tersedia',
+                    'Tunggu review dari recruiter',
+                    'Terima hasil akhir lamaran',
+                ],
             ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolveRequirements(Position $position): array
+    {
+        $title = strtolower($position->title);
+
+        if (str_contains($title, 'ui') || str_contains($title, 'design')) {
+            return [
+                'Memahami dasar UI/UX dan design thinking',
+                'Mampu menggunakan Figma atau tool desain sejenis',
+                'Memiliki portfolio desain menjadi nilai tambah',
+            ];
+        }
+
+        if (str_contains($title, 'data')) {
+            return [
+                'Memahami dasar spreadsheet dan analisis data',
+                'Mampu membaca insight dari data sederhana',
+                'Familiar dengan SQL atau dashboard analytics menjadi nilai tambah',
+            ];
+        }
+
+        if (str_contains($title, 'marketing')) {
+            return [
+                'Memahami dasar digital marketing dan social media',
+                'Mampu menulis copy singkat dan jelas',
+                'Tertarik dengan campaign, SEO, atau performance marketing',
+            ];
+        }
+
+        return [
+            'Memahami dasar pemrograman web',
+            'Familiar dengan HTML, CSS, JavaScript, atau framework terkait',
+            'Mampu belajar mandiri dan bekerja dengan feedback',
+        ];
+    }
+
+    private function resolveWorkType(Position $position): string
+    {
+        $title = strtolower($position->title);
+
+        if (str_contains($title, 'design') || str_contains($title, 'marketing')) {
+            return 'Hybrid';
+        }
+
+        return 'On-site';
+    }
+
+    private function resolveWorkLocation(Position $position): string
+    {
+        return $this->resolveWorkType($position) === 'Hybrid'
+            ? 'Jakarta, Indonesia + remote terjadwal'
+            : 'Jakarta, Indonesia';
     }
 
     private function getProjectTasks(int $assessmentId): Collection

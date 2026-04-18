@@ -10,6 +10,9 @@
 /resources/js/routes
 /resources/js/wayfinder
 /vendor
+.e2e-current-run
+/playwright-report
+/test-results
 .DS_Store
 .env
 .env.backup

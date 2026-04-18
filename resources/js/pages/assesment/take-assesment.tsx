@@ -12,7 +12,10 @@ import {
     Timer,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { submit as submitAssessmentRoute, warn as warnAssessmentRoute } from '@/routes/assessments';
+import {
+    submit as submitAssessmentRoute,
+    warn as warnAssessmentRoute,
+} from '@/routes/assessments';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,6 +77,15 @@ const BLOCKED_ACTION_MESSAGE =
     'Aksi ini dinonaktifkan selama assessment untuk menjaga integritas pengerjaan.';
 const REFRESH_WARNING_MESSAGE =
     'Jika halaman direfresh, jawaban Anda akan langsung dikumpulkan dan assessment dianggap selesai.';
+const DUPLICATE_TAB_MESSAGE =
+    'Assessment ini sudah terbuka di tab lain. Tutup tab ini dan lanjutkan pengerjaan di tab pertama.';
+const TAB_LOCK_TTL_MS = 8_000;
+const TAB_LOCK_HEARTBEAT_MS = 2_000;
+
+interface AssessmentTabLock {
+    tabId: string;
+    updatedAt: number;
+}
 
 // ─── Option label helper ──────────────────────────────────────────────────────
 
@@ -105,6 +117,41 @@ function isRefreshShortcut(event: KeyboardEvent): boolean {
     const key = event.key.toLowerCase();
 
     return key === 'f5' || ((event.ctrlKey || event.metaKey) && key === 'r');
+}
+
+function buildTabLockKey(applicationId: number): string {
+    return `assessment-tab-lock:${applicationId}`;
+}
+
+function createTabId(): string {
+    return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+}
+
+function readTabLock(lockKey: string): AssessmentTabLock | null {
+    try {
+        const raw = localStorage.getItem(lockKey);
+
+        if (!raw) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw) as Partial<AssessmentTabLock>;
+
+        if (!parsed.tabId || typeof parsed.updatedAt !== 'number') {
+            return null;
+        }
+
+        return {
+            tabId: parsed.tabId,
+            updatedAt: parsed.updatedAt,
+        };
+    } catch {
+        return null;
+    }
+}
+
+function writeTabLock(lockKey: string, lock: AssessmentTabLock): void {
+    localStorage.setItem(lockKey, JSON.stringify(lock));
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -155,12 +202,20 @@ export default function TakeAssesment({
     const [securityWarning, setSecurityWarning] = useState<string | null>(null);
     const [securityWarningCount, setSecurityWarningCount] = useState(0);
     const [isRefreshModalOpen, setIsRefreshModalOpen] = useState(false);
-    const [isSubmitConfirmModalOpen, setIsSubmitConfirmModalOpen] = useState(false);
+    const [isSubmitConfirmModalOpen, setIsSubmitConfirmModalOpen] =
+        useState(false);
     const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+    const [isDuplicateTabBlocked, setIsDuplicateTabBlocked] = useState(false);
+    const [duplicateTabLastSeenAt, setDuplicateTabLastSeenAt] = useState<
+        number | null
+    >(null);
     const mcqAnswersRef = useRef(mcqAnswers);
     const essayAnswersRef = useRef(essayAnswers);
     const submittedRef = useRef(false);
     const unloadSubmittedRef = useRef(false);
+    const tabIdRef = useRef(createTabId());
+    const ownsTabLockRef = useRef(false);
+    const duplicateWarningSentRef = useRef(false);
 
     useEffect(() => {
         mcqAnswersRef.current = mcqAnswers;
@@ -200,7 +255,9 @@ export default function TakeAssesment({
     /** Fire-and-forget: record the violation in the backend (non-blocking). */
     const sendWarning = useCallback(
         (action: string, description?: string) => {
-            if (submittedRef.current) return;
+            if (submittedRef.current) {
+                return;
+            }
 
             const warnUrl = warnAssessmentRoute.url(applicationId);
             const csrfToken = getCsrfToken();
@@ -214,13 +271,106 @@ export default function TakeAssesment({
                     'X-CSRF-TOKEN': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ action, description: description ?? null }),
+                body: JSON.stringify({
+                    action,
+                    description: description ?? null,
+                }),
             }).catch(() => {
                 // Silently ignore network errors; warnings are best-effort.
             });
         },
         [applicationId],
     );
+
+    useEffect(() => {
+        const lockKey = buildTabLockKey(applicationId);
+        const tabId = tabIdRef.current;
+
+        const releaseLock = () => {
+            const currentLock = readTabLock(lockKey);
+
+            if (currentLock?.tabId === tabId) {
+                localStorage.removeItem(lockKey);
+            }
+
+            ownsTabLockRef.current = false;
+        };
+
+        const blockAsDuplicate = (lock: AssessmentTabLock) => {
+            ownsTabLockRef.current = false;
+            setIsDuplicateTabBlocked(true);
+            setDuplicateTabLastSeenAt(lock.updatedAt);
+            showSecurityWarning(DUPLICATE_TAB_MESSAGE);
+
+            if (!duplicateWarningSentRef.current) {
+                duplicateWarningSentRef.current = true;
+                sendWarning('duplicate_tab', DUPLICATE_TAB_MESSAGE);
+            }
+        };
+
+        const acquireLock = () => {
+            const now = Date.now();
+            const currentLock = readTabLock(lockKey);
+            const lockIsAvailable =
+                !currentLock ||
+                currentLock.tabId === tabId ||
+                now - currentLock.updatedAt > TAB_LOCK_TTL_MS;
+
+            if (!lockIsAvailable) {
+                blockAsDuplicate(currentLock);
+
+                return;
+            }
+
+            writeTabLock(lockKey, { tabId, updatedAt: now });
+
+            const confirmedLock = readTabLock(lockKey);
+
+            if (confirmedLock?.tabId !== tabId) {
+                if (confirmedLock) {
+                    blockAsDuplicate(confirmedLock);
+                }
+
+                return;
+            }
+
+            ownsTabLockRef.current = true;
+            setIsDuplicateTabBlocked(false);
+        };
+
+        acquireLock();
+
+        const heartbeatId = window.setInterval(() => {
+            if (!ownsTabLockRef.current || submittedRef.current) {
+                return;
+            }
+
+            writeTabLock(lockKey, {
+                tabId,
+                updatedAt: Date.now(),
+            });
+        }, TAB_LOCK_HEARTBEAT_MS);
+
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key !== lockKey || !event.newValue) {
+                return;
+            }
+
+            const currentLock = readTabLock(lockKey);
+
+            if (currentLock && currentLock.tabId !== tabId) {
+                blockAsDuplicate(currentLock);
+            }
+        };
+
+        window.addEventListener('storage', handleStorage);
+
+        return () => {
+            window.clearInterval(heartbeatId);
+            window.removeEventListener('storage', handleStorage);
+            releaseLock();
+        };
+    }, [applicationId, sendWarning, showSecurityWarning]);
 
     const buildSubmitFormData = useCallback(() => {
         const formData = new FormData();
@@ -283,6 +433,7 @@ export default function TakeAssesment({
 
             if (requireConfirmation) {
                 setIsSubmitConfirmModalOpen(true);
+
                 return;
             }
 
@@ -345,7 +496,10 @@ export default function TakeAssesment({
             if (isRefreshShortcut(event)) {
                 event.preventDefault();
                 requestRefreshSubmit();
-                sendWarning('refresh_attempt', `Keyboard shortcut: ${event.key}`);
+                sendWarning(
+                    'refresh_attempt',
+                    `Keyboard shortcut: ${event.key}`,
+                );
 
                 return;
             }
@@ -366,12 +520,28 @@ export default function TakeAssesment({
             if (document.hidden) {
                 showSecurityWarning(SECURITY_ALERT);
                 setIsSecurityModalOpen(true);
-                sendWarning('tab_switch', 'Kandidat berpindah tab atau meminimalkan browser.');
+                sendWarning(
+                    'tab_switch',
+                    'Kandidat berpindah tab atau meminimalkan browser.',
+                );
             }
         };
-        const submitOnPageHide = () => submitDuringUnload();
+        const submitOnPageHide = () => {
+            if (!ownsTabLockRef.current) {
+                return;
+            }
+
+            submitDuringUnload();
+
+            const lockKey = buildTabLockKey(applicationId);
+            const currentLock = readTabLock(lockKey);
+
+            if (currentLock?.tabId === tabIdRef.current) {
+                localStorage.removeItem(lockKey);
+            }
+        };
         const warnOnBeforeUnload = (event: BeforeUnloadEvent) => {
-            if (submittedRef.current) {
+            if (submittedRef.current || !ownsTabLockRef.current) {
                 return;
             }
 
@@ -403,7 +573,13 @@ export default function TakeAssesment({
             window.removeEventListener('pagehide', submitOnPageHide);
             window.removeEventListener('beforeunload', warnOnBeforeUnload);
         };
-    }, [requestRefreshSubmit, sendWarning, showSecurityWarning, submitDuringUnload]);
+    }, [
+        applicationId,
+        requestRefreshSubmit,
+        sendWarning,
+        showSecurityWarning,
+        submitDuringUnload,
+    ]);
 
     // ── Left sidebar nav items ────────────────────────────────────────────
     const phases: { key: Phase; label: string; icon: typeof ClipboardList }[] =
@@ -411,6 +587,57 @@ export default function TakeAssesment({
             { key: 'mcq', label: 'Phase 1: MCQ', icon: Grid2X2 },
             { key: 'essay', label: 'Phase 2: Essay', icon: FileText },
         ];
+
+    if (isDuplicateTabBlocked) {
+        return (
+            <>
+                <Head title="Assessment Sudah Terbuka - Webcare Intern" />
+
+                <div className="flex min-h-screen items-center justify-center bg-[#EEF0F5] p-6">
+                    <div className="w-full max-w-lg rounded-[2rem] border border-red-100 bg-white p-8 text-center shadow-[0_24px_80px_rgba(15,23,42,0.18)]">
+                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                            <Lock className="h-8 w-8" />
+                        </div>
+                        <p className="mb-3 inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-black tracking-widest text-red-600 uppercase">
+                            Tab ganda terdeteksi
+                        </p>
+                        <h1 className="text-3xl font-black tracking-tight text-slate-900">
+                            Assessment sudah terbuka
+                        </h1>
+                        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">
+                            {DUPLICATE_TAB_MESSAGE} Sistem hanya mengizinkan
+                            satu tab aktif agar pengerjaan tetap valid.
+                        </p>
+                        {duplicateTabLastSeenAt && (
+                            <p className="mt-3 text-xs font-semibold text-slate-400">
+                                Tab aktif terakhir terdeteksi pada{' '}
+                                {new Date(
+                                    duplicateTabLastSeenAt,
+                                ).toLocaleTimeString('id-ID')}{' '}
+                                WIB.
+                            </p>
+                        )}
+                        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                            <button
+                                type="button"
+                                onClick={() => window.close()}
+                                className="rounded-full bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-600/20 transition-colors hover:bg-red-700"
+                            >
+                                Tutup Tab Ini
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => window.history.back()}
+                                className="rounded-full border border-slate-200 px-6 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                            >
+                                Kembali
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
@@ -434,10 +661,11 @@ export default function TakeAssesment({
                         <div className="flex items-center gap-2 rounded-full bg-[#EEF0F5] px-4 py-1.5">
                             <Timer className="h-4 w-4 text-primary" />
                             <span
-                                className={`font-mono text-base font-bold tracking-tight ${secondsLeft < 300
+                                className={`font-mono text-base font-bold tracking-tight ${
+                                    secondsLeft < 300
                                         ? 'text-red-500'
                                         : 'text-primary'
-                                    }`}
+                                }`}
                             >
                                 {secondsToDisplay(secondsLeft)}
                             </span>
@@ -514,12 +742,15 @@ export default function TakeAssesment({
                                 Submit Jawaban
                             </h2>
                             <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                                Anda yakin ingin mengumpulkan? Jawaban tidak dapat diubah setelah submit.
+                                Anda yakin ingin mengumpulkan? Jawaban tidak
+                                dapat diubah setelah submit.
                             </p>
                             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                                 <button
                                     type="button"
-                                    onClick={() => setIsSubmitConfirmModalOpen(false)}
+                                    onClick={() =>
+                                        setIsSubmitConfirmModalOpen(false)
+                                    }
                                     className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
                                 >
                                     Batal
@@ -533,7 +764,9 @@ export default function TakeAssesment({
                                     disabled={isSubmitting}
                                     className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
-                                    {isSubmitting ? 'Mengirim...' : 'Ya, Kumpulkan'}
+                                    {isSubmitting
+                                        ? 'Mengirim...'
+                                        : 'Ya, Kumpulkan'}
                                 </button>
                             </div>
                         </div>
@@ -563,7 +796,9 @@ export default function TakeAssesment({
                             <div className="mt-6 flex flex-col sm:flex-row sm:justify-end">
                                 <button
                                     type="button"
-                                    onClick={() => setIsSecurityModalOpen(false)}
+                                    onClick={() =>
+                                        setIsSecurityModalOpen(false)
+                                    }
                                     className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-600/20 transition-colors hover:bg-red-700"
                                 >
                                     Mengerti
@@ -592,10 +827,11 @@ export default function TakeAssesment({
                                     <button
                                         key={key}
                                         onClick={() => setPhase(key)}
-                                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${phase === key
+                                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${
+                                            phase === key
                                                 ? 'border-l-[3px] border-primary bg-blue-50 text-primary'
                                                 : 'text-gray-500 hover:bg-gray-50 hover:text-primary'
-                                            }`}
+                                        }`}
                                     >
                                         <Icon className="h-4 w-4 shrink-0" />
                                         {label}
@@ -626,9 +862,9 @@ export default function TakeAssesment({
                                                 Math.max(
                                                     1,
                                                     mcqQuestions.length +
-                                                    essayQuestions.length,
+                                                        essayQuestions.length,
                                                 )) *
-                                            100,
+                                                100,
                                         )}%`,
                                     }}
                                 />
@@ -678,18 +914,20 @@ export default function TakeAssesment({
                                                             }),
                                                         )
                                                     }
-                                                    className={`flex w-full items-center justify-between rounded-2xl border-2 p-4 text-left transition-all duration-150 ${selected
+                                                    className={`flex w-full items-center justify-between rounded-2xl border-2 p-4 text-left transition-all duration-150 ${
+                                                        selected
                                                             ? 'border-primary bg-white text-primary shadow-[0_0_0_1px_rgba(29,68,156,0.2)]'
                                                             : 'border-gray-200 bg-white text-gray-700 hover:border-primary/30 hover:bg-blue-50/30'
-                                                        }`}
+                                                    }`}
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         {/* Radio circle */}
                                                         <div
-                                                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${selected
+                                                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                                                                selected
                                                                     ? 'border-primary bg-primary'
                                                                     : 'border-gray-300 bg-white'
-                                                                }`}
+                                                            }`}
                                                         >
                                                             {selected && (
                                                                 <div className="h-2 w-2 rounded-full bg-white" />
@@ -896,12 +1134,13 @@ export default function TakeAssesment({
                                                     setPhase('mcq');
                                                     setMcqIndex(i);
                                                 }}
-                                                className={`flex h-7 w-full items-center justify-center rounded-lg text-xs font-bold transition-all duration-150 ${isCurrent
+                                                className={`flex h-7 w-full items-center justify-center rounded-lg text-xs font-bold transition-all duration-150 ${
+                                                    isCurrent
                                                         ? 'bg-primary text-white ring-2 ring-primary ring-offset-1'
                                                         : answered
-                                                            ? 'bg-primary/80 text-white'
-                                                            : 'border border-gray-200 bg-gray-50 text-gray-500 hover:border-primary/50 hover:text-primary'
-                                                    }`}
+                                                          ? 'bg-primary/80 text-white'
+                                                          : 'border border-gray-200 bg-gray-50 text-gray-500 hover:border-primary/50 hover:text-primary'
+                                                }`}
                                             >
                                                 {i + 1}
                                             </button>
@@ -933,12 +1172,13 @@ export default function TakeAssesment({
                                                     setPhase('essay');
                                                     setEssayIndex(i);
                                                 }}
-                                                className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${isCurrent
+                                                className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
+                                                    isCurrent
                                                         ? 'border-primary bg-blue-50 text-primary'
                                                         : answered
-                                                            ? 'border-green-200 bg-green-50 text-green-700'
-                                                            : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-primary/40 hover:text-primary'
-                                                    }`}
+                                                          ? 'border-green-200 bg-green-50 text-green-700'
+                                                          : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-primary/40 hover:text-primary'
+                                                }`}
                                             >
                                                 <span>
                                                     TASK{' '}
