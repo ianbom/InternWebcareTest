@@ -214,15 +214,6 @@ export default function ApplicationsShow({
                                     dan keputusan akhir untuk posisi {position.title ?? '-'}.
                                 </p>
                             </div>
-                            <div className="rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-                                <p className="text-sm text-blue-100">Auto score</p>
-                                <p className="mt-2 text-5xl font-black">
-                                    {application.total_score ?? '-'}
-                                </p>
-                                <p className="mt-2 text-xs text-blue-100">
-                                    Tidak digabung dengan nilai essay/project.
-                                </p>
-                            </div>
                         </div>
                     </section>
 

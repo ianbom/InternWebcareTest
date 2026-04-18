@@ -1,9 +1,9 @@
 import { Head, router, usePage, Link } from '@inertiajs/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowRight,
     Briefcase,
     CalendarClock,
-    CheckCircle2,
     Clock3,
     FileText,
     Layers3,
@@ -12,6 +12,7 @@ import {
     X,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import HTMLContent from '@/components/HTMLContent';
 import AppLayout from '@/layouts/app-layout';
 import { apply as applyPositionRoute } from '@/routes/positions';
 import { edit as editProfileRoute } from '@/routes/profile';
@@ -74,11 +75,16 @@ function normalizePositions(positions: Props['positions']): Position[] {
     return [];
 }
 
-function fallbackList(
-    value: string[] | undefined,
-    fallback: string[],
-): string[] {
+function fallbackList(value: string[] | undefined, fallback: string[]): string[] {
     return value && value.length > 0 ? value : fallback;
+}
+
+function stripHtml(value: string | null): string {
+    if (!value) {
+        return '';
+    }
+
+    return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -91,24 +97,18 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('Semua Posisi');
-    const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-        null,
-    );
-    const [applyingPositionId, setApplyingPositionId] = useState<number | null>(
-        null,
-    );
+    const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+    const [applyingPositionId, setApplyingPositionId] = useState<number | null>(null);
 
     const filtered = useMemo(() => {
         return positionList.filter((position) => {
             const q = searchQuery.toLowerCase();
+            const plainDesc = stripHtml(position.description).toLowerCase();
             const matchSearch =
-                position.title.toLowerCase().includes(q) ||
-                (position.description ?? '').toLowerCase().includes(q);
+                position.title.toLowerCase().includes(q) || plainDesc.includes(q);
             const matchCategory =
                 activeCategory === 'Semua Posisi' ||
-                position.title
-                    .toLowerCase()
-                    .includes(activeCategory.toLowerCase());
+                position.title.toLowerCase().includes(activeCategory.toLowerCase());
 
             return matchSearch && matchCategory;
         });
@@ -124,10 +124,7 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
         router.post(
             applyPositionRoute.url(positionId),
             {},
-            {
-                preserveScroll: true,
-                onFinish: () => setApplyingPositionId(null),
-            },
+            { preserveScroll: true, onFinish: () => setApplyingPositionId(null) },
         );
     };
 
@@ -141,16 +138,7 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
 
     const isApplyingSelected =
         selectedPosition !== null && applyingPositionId === selectedPosition.id;
-    const selectedRequirements = fallbackList(selectedPosition?.requirements, [
-        'Memiliki minat kuat terhadap posisi yang dilamar',
-        'Siap mengikuti seluruh proses seleksi',
-        'Mampu bekerja dengan arahan dan feedback',
-    ]);
-    const selectedBenefits = fallbackList(selectedPosition?.benefits, [
-        'Mentoring bersama tim internal',
-        'Pengalaman project nyata',
-        'Sertifikat setelah program selesai',
-    ]);
+
     const selectedFlow = fallbackList(selectedPosition?.selection_flow, [
         'Lengkapi data diri dan CV',
         'Kerjakan quiz seleksi',
@@ -158,20 +146,58 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
         'Terima hasil akhir lamaran',
     ]);
 
+    // ─── Stat items for modal ─────────────────────────────────────────────────
+    const statItems = selectedPosition
+        ? [
+              {
+                  Icon: Clock3,
+                  label: 'Jam Kerja',
+                  value: selectedPosition.work_hours ?? 'Senin - Jumat, 09.00-16.00 WIB',
+                  iconCls: 'text-[#0E3F97]',
+                  bgCls: 'bg-[#E8EEF9]',
+                  bdCls: 'border-blue-100',
+              },
+              {
+                  Icon: MapPin,
+                  label: 'Lokasi',
+                  value: selectedPosition.work_location ?? 'Sidoarjo',
+                  iconCls: 'text-emerald-600',
+                  bgCls: 'bg-emerald-50',
+                  bdCls: 'border-emerald-100',
+              },
+              {
+                  Icon: Layers3,
+                  label: 'Model Kerja',
+                  value: selectedPosition.work_type ?? 'Hybrid',
+                  iconCls: 'text-amber-600',
+                  bgCls: 'bg-amber-50',
+                  bdCls: 'border-amber-100',
+              },
+              {
+                  Icon: CalendarClock,
+                  label: 'Durasi',
+                  value: selectedPosition.duration ?? '3–6 bulan',
+                  iconCls: 'text-purple-600',
+                  bgCls: 'bg-purple-50',
+                  bdCls: 'border-purple-100',
+              },
+          ]
+        : [];
+
     return (
         <AppLayout>
             <Head title="Posisi Magang - InternHub" />
 
             <div className="min-h-screen p-4 sm:p-6">
-                {/* ── Results header ─────────────────────────────────────── */}
+
+                {/* ── Results Header ─────────────────────────────────────────── */}
                 <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p className="text-base font-bold text-gray-800">
                             Menampilkan {filtered.length} Posisi Magang
                         </p>
                         <p className="text-sm text-gray-400">
-                            Pilih posisi, baca detail pekerjaan, lalu daftar
-                            jika sudah sesuai.
+                            Pilih posisi, baca detail pekerjaan, lalu daftar jika sudah sesuai.
                         </p>
                     </div>
 
@@ -179,46 +205,38 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
                         <div className="relative">
                             <input
                                 value={searchQuery}
-                                onChange={(event) =>
-                                    setSearchQuery(event.target.value)
-                                }
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Cari posisi..."
-                                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 transition-colors outline-none focus:border-primary sm:w-72"
+                                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 pr-10 text-sm text-gray-700 outline-none transition-colors focus:border-primary sm:w-72"
                             />
-                            <Briefcase className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-300" />
+                            <Briefcase className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-300" />
                         </div>
                         <select
                             value={activeCategory}
-                            onChange={(event) =>
-                                setActiveCategory(event.target.value)
-                            }
-                            className="h-11 rounded-2xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 transition-colors outline-none focus:border-primary"
+                            onChange={(e) => setActiveCategory(e.target.value)}
+                            className="h-11 rounded-2xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 outline-none transition-colors focus:border-primary"
                         >
-                            {CATEGORIES.map((category) => (
-                                <option key={category} value={category}>
-                                    {category}
-                                </option>
+                            {CATEGORIES.map((cat) => (
+                                <option key={cat} value={cat}>{cat}</option>
                             ))}
                         </select>
                     </div>
                 </div>
 
-                {/* ── Already Applied Banner ─────────────────────────────── */}
+                {/* ── Already Applied Banner ─────────────────────────────────── */}
                 {hasAppliedPosition && (
                     <div className="mb-5 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-center">
                         <p className="text-sm font-medium text-primary">
-                            Anda sedang dalam proses seleksi. Anda belum bisa
-                            mendaftar posisi lain hingga proses selesai.
+                            Anda sedang dalam proses seleksi. Anda belum bisa mendaftar posisi lain hingga proses selesai.
                         </p>
                     </div>
                 )}
 
-                {/* ── Position Grid ───────────────────────────────────────── */}
+                {/* ── Position Grid ──────────────────────────────────────────── */}
                 {filtered.length > 0 ? (
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                         {filtered.map((position, index) => {
-                            const scheme =
-                                ICON_SCHEMES[index % ICON_SCHEMES.length];
+                            const scheme = ICON_SCHEMES[index % ICON_SCHEMES.length];
 
                             return (
                                 <div
@@ -227,33 +245,27 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0 flex-1">
-                                            <p className="mb-0.5 text-xs font-medium text-gray-400">
-                                                InternHub
-                                            </p>
-                                            <h3 className="text-lg leading-tight font-bold text-gray-800 transition-colors duration-200 group-hover:text-primary">
+                                            <p className="mb-0.5 text-xs font-medium text-gray-400">InternHub</p>
+                                            <h3 className="text-lg font-bold leading-tight text-gray-800 transition-colors duration-200 group-hover:text-primary">
                                                 {position.title}
                                             </h3>
                                         </div>
-                                        <div
-                                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${scheme.bg}`}
-                                        >
+                                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${scheme.bg}`}>
                                             <Briefcase className="h-6 w-6 text-white" />
                                         </div>
                                     </div>
 
                                     <p className="text-sm font-semibold text-primary">
-                                        {position.employment_type ??
-                                            'Program Magang Intensif'}
+                                        {position.employment_type ?? 'Program Magang Intensif'}
                                     </p>
 
                                     <p className="line-clamp-3 text-sm leading-relaxed text-gray-400">
-                                        {position.description ??
-                                            'Tidak ada deskripsi tersedia untuk posisi ini.'}
+                                        {stripHtml(position.description) || 'Tidak ada deskripsi tersedia untuk posisi ini.'}
                                     </p>
 
                                     <div className="mt-auto grid grid-cols-2 gap-2 pt-1 text-xs font-semibold text-gray-500">
-                                        <span className="rounded-full bg-purple-50 px-3 py-1.5 text-center text-primary uppercase">
-                                            {position.work_type ?? 'On-site'}
+                                        <span className="rounded-full bg-purple-50 px-3 py-1.5 text-center uppercase text-primary">
+                                            {position.work_type ?? 'Hybrid'}
                                         </span>
                                         <span className="rounded-full bg-gray-50 px-3 py-1.5 text-center">
                                             {position.duration ?? '3-6 bulan'}
@@ -262,9 +274,7 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
 
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setSelectedPosition(position)
-                                        }
+                                        onClick={() => setSelectedPosition(position)}
                                         className="mt-1 block w-full rounded-xl bg-primary py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary/90"
                                     >
                                         Daftar Sekarang
@@ -289,214 +299,192 @@ export default function ListPosition({ positions, hasAppliedPosition }: Props) {
                     </div>
                 )}
 
-                {selectedPosition && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="position-detail-title"
-                    >
-                        <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.28)]">
-                            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-[#0E3F97] to-[#1B52B8] p-6 text-white">
-                                <div>
-                                    <p className="text-xs font-bold tracking-[0.28em] text-blue-100 uppercase">
-                                        Detail Posisi Magang
-                                    </p>
-                                    <h2
-                                        id="position-detail-title"
-                                        className="mt-2 text-3xl font-black tracking-tight"
+                {/* ── Detail Modal ───────────────────────────────────────────── */}
+                <AnimatePresence>
+                    {selectedPosition && (
+                        <motion.div
+                            key="modal-backdrop"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="fixed inset-0 z-50 flex items-end justify-center bg-[#0F1E46]/50 p-0 backdrop-blur-md sm:items-center sm:p-6"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="position-detail-title"
+                            onClick={closeDetailModal}
+                        >
+                            <motion.div
+                                key="modal-panel"
+                                initial={{ y: 48, opacity: 0, scale: 0.97 }}
+                                animate={{ y: 0, opacity: 1, scale: 1 }}
+                                exit={{ y: 48, opacity: 0, scale: 0.97 }}
+                                transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="relative flex w-full max-w-4xl max-h-[92vh] flex-col overflow-hidden rounded-t-[2rem] border border-[#E3E8F2] bg-white shadow-[0_40px_120px_rgba(14,63,151,0.2)] sm:max-h-[88vh] sm:rounded-[2rem]"
+                            >
+                                {/* Mesh gradient deco at top */}
+                                <div className="pointer-events-none absolute inset-x-0 top-0 h-28 rounded-t-[2rem] bg-gradient-to-b from-[#EEF3FF] to-transparent" />
+
+                                {/* ── Zone 1 · Header ───────────────────────────────── */}
+                                <div className="relative flex shrink-0 items-start justify-between gap-4 border-b border-[#F0F3FA] px-7 pb-5 pt-7">
+                                    <div className="min-w-0 flex-1">
+                                        {/* Badge */}
+                                        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#0E3F97]/10 bg-[#E8EEF9] px-3 py-1">
+                                            <Briefcase className="h-3 w-3 text-[#0E3F97]" />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#0E3F97]">
+                                                Detail Posisi Magang
+                                            </span>
+                                        </div>
+                                        {/* Title */}
+                                        <h2
+                                            id="position-detail-title"
+                                            className="text-2xl font-black leading-tight tracking-tight text-[#0F1E46] sm:text-[1.75rem]"
+                                        >
+                                            {selectedPosition.title}
+                                        </h2>
+                                        {selectedPosition.employment_type && (
+                                            <p className="mt-1 text-sm font-semibold text-[#0E3F97]">
+                                                {selectedPosition.employment_type}
+                                            </p>
+                                        )}
+                                    </div>
+                                    {/* Close button */}
+                                    <button
+                                        type="button"
+                                        onClick={closeDetailModal}
+                                        aria-label="Tutup"
+                                        className="shrink-0 rounded-full border border-[#E3E8F2] bg-white p-2 text-[#7A849B] shadow-sm transition-all hover:scale-110 hover:border-[#0E3F97]/20 hover:text-[#0E3F97]"
                                     >
-                                        {selectedPosition.title}
-                                    </h2>
-                                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-blue-100">
-                                        {selectedPosition.description ??
-                                            'Detail posisi belum memiliki deskripsi khusus.'}
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={closeDetailModal}
-                                    className="rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
-                                    aria-label="Tutup detail posisi"
-                                >
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto p-6">
-                                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-                                    <div className="rounded-2xl bg-blue-50 p-4">
-                                        <Clock3 className="mb-3 h-5 w-5 text-primary" />
-                                        <p className="text-xs font-bold text-gray-400 uppercase">
-                                            Jam Kerja
-                                        </p>
-                                        <p className="mt-1 text-sm font-bold text-gray-800">
-                                            {selectedPosition.work_hours ??
-                                                'Senin-Jumat, 09.00-17.00 WIB'}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-2xl bg-emerald-50 p-4">
-                                        <MapPin className="mb-3 h-5 w-5 text-emerald-600" />
-                                        <p className="text-xs font-bold text-gray-400 uppercase">
-                                            Tempat Kerja
-                                        </p>
-                                        <p className="mt-1 text-sm font-bold text-gray-800">
-                                            {selectedPosition.work_location ??
-                                                'Jakarta, Indonesia'}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-2xl bg-amber-50 p-4">
-                                        <Layers3 className="mb-3 h-5 w-5 text-amber-600" />
-                                        <p className="text-xs font-bold text-gray-400 uppercase">
-                                            Model Kerja
-                                        </p>
-                                        <p className="mt-1 text-sm font-bold text-gray-800">
-                                            {selectedPosition.work_type ??
-                                                'On-site'}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-2xl bg-purple-50 p-4">
-                                        <CalendarClock className="mb-3 h-5 w-5 text-purple-600" />
-                                        <p className="text-xs font-bold text-gray-400 uppercase">
-                                            Durasi
-                                        </p>
-                                        <p className="mt-1 text-sm font-bold text-gray-800">
-                                            {selectedPosition.duration ??
-                                                '3-6 bulan'}
-                                        </p>
-                                    </div>
+                                        <X className="h-5 w-5" />
+                                    </button>
                                 </div>
 
-                                <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-                                    <div className="space-y-5">
-                                        <section className="rounded-3xl border border-gray-100 p-5">
-                                            <div className="mb-4 flex items-center gap-2">
-                                                <FileText className="h-5 w-5 text-primary" />
-                                                <h3 className="text-lg font-black text-gray-900">
-                                                    Kualifikasi
-                                                </h3>
-                                            </div>
-                                            <div className="space-y-3">
-                                                {selectedRequirements.map(
-                                                    (item) => (
-                                                        <div
-                                                            key={item}
-                                                            className="flex gap-3 text-sm leading-relaxed text-gray-600"
-                                                        >
-                                                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                                                            <span>{item}</span>
-                                                        </div>
-                                                    ),
-                                                )}
-                                            </div>
-                                        </section>
+                                {/* ── Zone 2 · Scrollable Body ──────────────────────── */}
+                                <div className="flex-1 overflow-y-auto px-7 py-6">
 
-                                        <section className="rounded-3xl border border-gray-100 p-5">
-                                            <div className="mb-4 flex items-center gap-2">
-                                                <Users className="h-5 w-5 text-primary" />
-                                                <h3 className="text-lg font-black text-gray-900">
-                                                    Benefit Program
-                                                </h3>
+                                    {/* Stats — 4 column row */}
+                                    <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                                        {statItems.map(({ Icon, label, value, iconCls, bgCls, bdCls }) => (
+                                            <div
+                                                key={label}
+                                                className={`flex items-start gap-3 rounded-2xl border ${bdCls} ${bgCls} p-4`}
+                                            >
+                                                <div className="shrink-0 rounded-xl bg-white/80 p-2 shadow-sm">
+                                                    <Icon className={`h-4 w-4 ${iconCls}`} />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="mb-0.5 text-[10px] font-black uppercase tracking-wider text-[#7A849B]">
+                                                        {label}
+                                                    </p>
+                                                    <p className="text-[13px] font-bold leading-snug text-[#0F1E46]">
+                                                        {value}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="grid gap-3 sm:grid-cols-2">
-                                                {selectedBenefits.map(
-                                                    (item) => (
-                                                        <div
-                                                            key={item}
-                                                            className="rounded-2xl bg-gray-50 px-4 py-3 text-sm leading-relaxed font-semibold text-gray-600"
-                                                        >
-                                                            {item}
-                                                        </div>
-                                                    ),
-                                                )}
-                                            </div>
-                                        </section>
+                                        ))}
                                     </div>
 
-                                    <aside className="rounded-3xl border border-gray-100 bg-gray-50 p-5">
-                                        <h3 className="text-lg font-black text-gray-900">
-                                            Alur Setelah Daftar
+                                    {/* Deskripsi — full-width rich HTML (Tiptap) */}
+                                    <div className="mb-8">
+                                        <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wide text-[#0F1E46]">
+                                            <FileText className="h-4 w-4 text-[#0E3F97]" />
+                                            Deskripsi Pekerjaan
                                         </h3>
-                                        <div className="mt-4 space-y-3">
-                                            {selectedFlow.map((step, index) => (
+
+                                        <HTMLContent
+                                            html={selectedPosition.description}
+                                            emptyFallback={
+                                                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#DCE2EE] bg-[#F5F7FB] py-10">
+                                                    <FileText className="mb-2 h-8 w-8 text-[#A6AFC2]" />
+                                                    <p className="text-sm font-medium text-[#7A849B]">
+                                                        Deskripsi belum tersedia.
+                                                    </p>
+                                                </div>
+                                            }
+                                        />
+                                    </div>
+
+                                    {/* Alur Seleksi — horizontal stepper */}
+                                    <div className="mb-6 rounded-2xl border border-[#E3E8F2] bg-[#F8FAFE] px-6 py-5">
+                                        <h3 className="mb-5 flex items-center gap-2 text-sm font-black uppercase tracking-wide text-[#0F1E46]">
+                                            <Users className="h-4 w-4 text-[#0E3F97]" />
+                                            Alur Seleksi
+                                        </h3>
+
+                                        <div className="relative grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-4">
+                                            {/* Connector line, desktop only */}
+                                            <div className="absolute top-5 left-[calc(12.5%+20px)] right-[calc(12.5%+20px)] hidden h-px bg-[#DCE2EE] sm:block" />
+
+                                            {selectedFlow.map((step, i) => (
                                                 <div
                                                     key={step}
-                                                    className="flex items-start gap-3"
+                                                    className="relative z-10 flex flex-col items-center gap-2.5 text-center"
                                                 >
-                                                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-white">
-                                                        {index + 1}
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0E3F97] text-[13px] font-black text-white shadow-[0_4px_12px_rgba(14,63,151,0.3)]">
+                                                        {i + 1}
                                                     </div>
-                                                    <p className="pt-1 text-sm leading-relaxed font-semibold text-gray-600">
+                                                    <p className="max-w-[96px] text-[12px] font-semibold leading-snug text-[#65708C]">
                                                         {step}
                                                     </p>
                                                 </div>
                                             ))}
                                         </div>
-
-                                        <div className="mt-6 rounded-2xl bg-white p-4">
-                                            <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">
-                                                Kuota
-                                            </p>
-                                            <p className="mt-1 text-2xl font-black text-primary">
-                                                {selectedPosition.quota ??
-                                                    'Terbatas'}
-                                            </p>
-                                        </div>
-                                    </aside>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="mt-auto flex shrink-0 flex-col gap-3 border-t border-gray-100 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-                                <p className="text-sm text-gray-500">
-                                    {isProfileComplete 
-                                        ? 'Pastikan data diri dan CV Anda sudah lengkap sebelum melanjutkan pendaftaran.'
-                                        : <span className="font-medium text-rose-500">Anda belum bisa mendaftar. Silakan lengkapi Nomor Telepon dan CV Anda di menu Profil.</span>
-                                    }
-                                </p>
-                                <div className="flex flex-col gap-2 sm:flex-row">
-                                    <button
-                                        type="button"
-                                        onClick={closeDetailModal}
-                                        className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-50"
-                                    >
-                                        Batal
-                                    </button>
+                                {/* ── Zone 3 · Action Footer ────────────────────────── */}
+                                <div className="shrink-0 flex flex-col gap-3 border-t border-[#F0F3FA] bg-white/90 px-7 py-5 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+                                    <p className="text-sm leading-snug">
+                                        {isProfileComplete ? (
+                                            <span className="text-[#7A849B]">
+                                                Pastikan CV dan nomor telepon Anda sudah diisi sebelum mendaftar.
+                                            </span>
+                                        ) : (
+                                            <span className="font-semibold text-rose-500">
+                                                Lengkapi profil Anda terlebih dahulu untuk bisa mendaftar.
+                                            </span>
+                                        )}
+                                    </p>
 
-                                    {isProfileComplete ? (
+                                    <div className="flex shrink-0 items-center gap-3">
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                handleApplyPosition(
-                                                    selectedPosition.id,
-                                                )
-                                            }
-                                            disabled={
-                                                hasAppliedPosition ||
-                                                applyingPositionId !== null
-                                            }
-                                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/60"
+                                            onClick={closeDetailModal}
+                                            className="rounded-xl border border-[#E3E8F2] bg-white px-5 py-2.5 text-sm font-bold text-[#65708C] shadow-sm transition-all hover:bg-[#F3F5FB] hover:text-[#0F1E46]"
                                         >
-                                            {hasAppliedPosition
-                                                ? 'Sedang Proses Seleksi'
-                                                : isApplyingSelected
-                                                  ? 'Memproses...'
-                                                  : 'Lanjut Daftar'}
-                                            <ArrowRight className="h-4 w-4" />
+                                            Batal
                                         </button>
-                                    ) : (
-                                        <Link
-                                            href={editProfileRoute.url()}
-                                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-rose-600"
-                                        >
-                                            Lengkapi Profil
-                                            <ArrowRight className="h-4 w-4" />
-                                        </Link>
-                                    )}
+
+                                        {isProfileComplete ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleApplyPosition(selectedPosition.id)}
+                                                disabled={hasAppliedPosition || applyingPositionId !== null}
+                                                className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#0E3F97] to-[#1B52B8] px-7 py-2.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(14,63,151,0.28)] will-change-transform transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(14,63,151,0.45)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                                            >
+                                                {hasAppliedPosition
+                                                    ? 'Sedang Proses Seleksi'
+                                                    : isApplyingSelected
+                                                      ? 'Memproses...'
+                                                      : 'Lanjut Daftar'}
+                                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                            </button>
+                                        ) : (
+                                            <Link
+                                                href={editProfileRoute.url()}
+                                                className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-7 py-2.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(244,63,94,0.28)] will-change-transform transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(244,63,94,0.45)]"
+                                            >
+                                                Lengkapi Profil
+                                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                            </Link>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </AppLayout>
     );

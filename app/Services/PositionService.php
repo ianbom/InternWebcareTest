@@ -93,7 +93,7 @@ class PositionService
     {
         return Position::query()->create([
             'title' => $data['title'],
-            'description' => $data['description'] ?? null,
+            'description' => $this->sanitizeDescription($data['description'] ?? null),
             'is_active' => (bool) $data['is_active'],
             'created_by' => $admin->id,
         ]);
@@ -103,7 +103,7 @@ class PositionService
     {
         $position->update([
             'title' => $data['title'],
-            'description' => $data['description'] ?? null,
+            'description' => $this->sanitizeDescription($data['description'] ?? null),
             'is_active' => (bool) $data['is_active'],
         ]);
 
@@ -196,9 +196,9 @@ class PositionService
                 'title' => $position->title,
                 'description' => $position->description,
                 'employment_type' => 'Program Magang Intensif',
-                'work_type' => $this->resolveWorkType($position),
-                'work_location' => $this->resolveWorkLocation($position),
-                'work_hours' => 'Senin-Jumat, 09.00-17.00 WIB',
+                'work_type' => 'Hybrid',
+                'work_location' => 'Sidoarjo',
+                'work_hours' => 'Senin - Jumat',
                 'duration' => '3-6 bulan',
                 'quota' => 'Terbatas',
                 'requirements' => $this->resolveRequirements($position),
@@ -209,9 +209,8 @@ class PositionService
                     'Kesempatan rekomendasi untuk role lanjutan',
                 ],
                 'selection_flow' => [
-                    'Lengkapi data diri dan CV',
                     'Kerjakan quiz seleksi',
-                    'Kerjakan project jika tersedia',
+                    'Kerjakan project',
                     'Tunggu review dari recruiter',
                     'Terima hasil akhir lamaran',
                 ],
@@ -256,24 +255,6 @@ class PositionService
         ];
     }
 
-    private function resolveWorkType(Position $position): string
-    {
-        $title = strtolower($position->title);
-
-        if (str_contains($title, 'design') || str_contains($title, 'marketing')) {
-            return 'Hybrid';
-        }
-
-        return 'On-site';
-    }
-
-    private function resolveWorkLocation(Position $position): string
-    {
-        return $this->resolveWorkType($position) === 'Hybrid'
-            ? 'Jakarta, Indonesia + remote terjadwal'
-            : 'Jakarta, Indonesia';
-    }
-
     private function getProjectTasks(int $assessmentId): Collection
     {
         return ProjectTask::query()
@@ -293,6 +274,26 @@ class PositionService
         return $position->assessments()
             ->orderBy('id')
             ->first();
+    }
+
+    private function sanitizeDescription(?string $description): ?string
+    {
+        if ($description === null) {
+            return null;
+        }
+
+        $trimmed = trim($description);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $allowedTags = '<p><br><strong><em><u><s><code><pre><ul><ol><li><blockquote><h1><h2><h3><hr>';
+        $sanitized = strip_tags($trimmed, $allowedTags);
+
+        // Remove inline attributes so only the allowed semantic tags remain.
+        $sanitized = preg_replace('/<(\/?)([a-z0-9]+)(?:\s[^>]*)?>/i', '<$1$2>', $sanitized) ?? '';
+
+        return trim($sanitized) !== '' ? $sanitized : null;
     }
 
     /**

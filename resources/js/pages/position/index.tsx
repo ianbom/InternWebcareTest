@@ -50,7 +50,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { cn } from '@/lib/utils';
 import {
     index as positionsIndex,
@@ -77,6 +77,14 @@ const EMPTY_FORM: PositionFormData = {
     description: '',
     is_active: true,
 };
+
+function stripHtml(value: string | null): string {
+    if (!value) {
+        return '';
+    }
+
+    return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
 
 function cleanQuery(filters: PositionFilters): Record<string, string> {
     return Object.fromEntries(
@@ -361,7 +369,9 @@ export default function PositionIndex({
                                                         {position.title}
                                                     </p>
                                                     <p className="mt-1 line-clamp-2 text-sm leading-6 text-[#526078]">
-                                                        {position.description ??
+                                                        {stripHtml(
+                                                            position.description,
+                                                        ) ||
                                                             'Tidak ada deskripsi.'}
                                                     </p>
                                                     {position.created_by_name && (
@@ -490,7 +500,7 @@ export default function PositionIndex({
                             event.preventDefault();
                         }
                     }}
-                    className="max-w-2xl rounded-[28px]"
+                    className="max-h-[94vh] w-[95vw] sm:max-w-[1000px] overflow-y-auto rounded-[28px]"
                 >
                     <form onSubmit={submitPosition} className="space-y-5">
                         <DialogHeader>
@@ -506,58 +516,56 @@ export default function PositionIndex({
                         </DialogHeader>
 
                         <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="position-title">Title</Label>
-                                <Input
-                                    id="position-title"
-                                    value={data.title}
-                                    onChange={(event) =>
-                                        setData('title', event.target.value)
-                                    }
-                                    placeholder="Frontend Developer Intern"
-                                    className="rounded-2xl"
-                                />
-                                <FieldError message={errors.title} />
+                            <div className="grid gap-4 sm:grid-cols-4">
+                                <div className="space-y-2 sm:col-span-3">
+                                    <Label htmlFor="position-title">Title</Label>
+                                    <Input
+                                        id="position-title"
+                                        value={data.title}
+                                        onChange={(event) =>
+                                            setData('title', event.target.value)
+                                        }
+                                        placeholder="Frontend Developer Intern"
+                                        className="rounded-2xl"
+                                    />
+                                    <FieldError message={errors.title} />
+                                </div>
+
+                                <div className="space-y-2 sm:col-span-1">
+                                    <Label>Status</Label>
+                                    <Select
+                                        value={data.is_active ? '1' : '0'}
+                                        onValueChange={(value) =>
+                                            setData('is_active', value === '1')
+                                        }
+                                    >
+                                        <SelectTrigger className="h-11 w-full rounded-2xl">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1">Aktif</SelectItem>
+                                            <SelectItem value="0">
+                                                Nonaktif
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FieldError message={errors.is_active} />
+                                </div>
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="position-description">
                                     Description
                                 </Label>
-                                <Textarea
-                                    id="position-description"
+                                <RichTextEditor
                                     value={data.description}
-                                    onChange={(event) =>
-                                        setData(
-                                            'description',
-                                            event.target.value,
-                                        )
+                                    onChange={(html) =>
+                                        setData('description', html)
                                     }
                                     placeholder="Tuliskan scope pekerjaan dan ekspektasi kandidat..."
-                                    className="min-h-32 rounded-2xl"
+                                    minHeight="320px"
                                 />
                                 <FieldError message={errors.description} />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Status</Label>
-                                <Select
-                                    value={data.is_active ? '1' : '0'}
-                                    onValueChange={(value) =>
-                                        setData('is_active', value === '1')
-                                    }
-                                >
-                                    <SelectTrigger className="h-11 w-full rounded-2xl">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">Aktif</SelectItem>
-                                        <SelectItem value="0">
-                                            Nonaktif
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FieldError message={errors.is_active} />
                             </div>
                         </div>
 
