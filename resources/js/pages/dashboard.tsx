@@ -42,15 +42,15 @@ export default function Dashboard({ candidate, application }: Props) {
         <AppLayout>
             <Head title="Dashboard" />
 
-            <div className="min-h-screen p-4 sm:p-6">
-                <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[minmax(0,1fr)_240px]">
+            <div className="min-h-screen p-3 sm:p-4 md:p-6">
+                <div className="mx-auto grid max-w-7xl gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_240px]">
                     <div className="space-y-5">
                         <DashboardHero candidateName={candidate.name} />
 
-                        <div className="rounded-3xl bg-white p-6 shadow-[0_8px_24px_rgba(19,41,89,0.08)]">
+                        <div className="rounded-3xl bg-white p-4 sm:p-6 shadow-[0_8px_24px_rgba(19,41,89,0.08)]">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
-                                    <h2 className="text-4xl font-bold tracking-tight text-[#0F1E46]">
+                                    <h2 className="text-2xl font-bold tracking-tight text-[#0F1E46] sm:text-3xl md:text-4xl">
                                         Status Lamaran Anda
                                     </h2>
                                     <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-[#65708C]">
@@ -83,20 +83,17 @@ export default function Dashboard({ candidate, application }: Props) {
                                 </div>
 
                                 <div className="text-left sm:text-right">
-                                    <p className="text-sm font-medium text-[#65708C]">
-                                        Posisi
-                                    </p>
-                                    <p className="text-3xl font-bold text-[#0E3F97]">
+                                    <p className="text-sm font-bold text-[#0E3F97] sm:text-2xl md:text-3xl">
                                         {application?.positionTitle ??
                                             'Belum memilih posisi'}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="relative mt-8">
-                                <div className="absolute top-5 right-6 left-6 h-0.5 bg-[#DCE2EE]" />
+                            <div className="relative mt-5 sm:mt-8">
+                                <div className="absolute top-5 right-2 left-2 h-0.5 bg-[#DCE2EE] sm:right-6 sm:left-6" />
 
-                                <div className="relative grid grid-cols-5 gap-3">
+                                <div className="relative grid grid-cols-5 gap-1 sm:gap-3">
                                     {STEP_ITEMS.map((step) => {
                                         const Icon = step.icon;
                                         const state = getStepState(
@@ -108,10 +105,10 @@ export default function Dashboard({ candidate, application }: Props) {
                                         return (
                                             <div
                                                 key={step.key}
-                                                className="flex flex-col items-center gap-2"
+                                                className="flex flex-col items-center gap-1 sm:gap-2"
                                             >
                                                 <div
-                                                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                                                    className={`flex h-8 w-8 items-center justify-center rounded-full border-2 sm:h-10 sm:w-10 ${
                                                         state === 'done'
                                                             ? 'border-[#0E3F97] bg-[#0E3F97] text-white'
                                                             : state === 'active'
@@ -122,10 +119,10 @@ export default function Dashboard({ candidate, application }: Props) {
                                                                 : 'border-[#DCE2EE] bg-[#F1F4FA] text-[#A6AFC2]'
                                                     }`}
                                                 >
-                                                    <Icon className="h-4 w-4" />
+                                                    <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
                                                 </div>
                                                 <p
-                                                    className={`text-xs font-semibold ${
+                                                    className={`text-center text-[10px] font-semibold leading-tight sm:text-xs ${
                                                         state === 'pending' ||
                                                         state === 'skipped'
                                                             ? 'text-[#8A94AA]'
@@ -146,7 +143,7 @@ export default function Dashboard({ candidate, application }: Props) {
                             </div>
 
                             <div
-                                className={`mt-8 rounded-2xl p-8 text-center ${
+                                className={`mt-5 rounded-2xl p-4 text-center sm:mt-8 sm:p-8 ${
                                     application
                                         ? STATUS_PANEL_CLASSES[
                                               application.statusTone
@@ -154,7 +151,7 @@ export default function Dashboard({ candidate, application }: Props) {
                                         : 'bg-[#F3F5FB] text-[#3F4A63]'
                                 }`}
                             >
-                                <h3 className="text-2xl font-black text-[#0F1E46]">
+                                <h3 className="text-lg font-black text-[#0F1E46] sm:text-2xl">
                                     {application?.headline ??
                                         'Belum ada lamaran aktif'}
                                 </h3>
@@ -289,9 +286,7 @@ export default function Dashboard({ candidate, application }: Props) {
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-[#4B4F63] p-3 text-xs leading-relaxed text-white/95">
-                                “Pelajari kembali struktur data dan algoritma
-                                dasar untuk posisi Web Developer. Kebanyakan
-                                soal akan menguji logika dasar JavaScript.”
+                                “Kerjakan assesment dengan jujur, percayalah pada kemampuanmu”
                             </div>
                         </div>
                     </aside>

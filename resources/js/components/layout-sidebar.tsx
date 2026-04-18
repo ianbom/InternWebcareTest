@@ -118,7 +118,7 @@ function SidebarBody({
     };
 
     return (
-        <>
+        <div className="flex h-full flex-col">
             <Link
                 href={homeHref}
                 className="mb-5 flex items-center gap-2.5 px-1.5"
@@ -137,7 +137,7 @@ function SidebarBody({
                 </span>
             </Link>
 
-            <nav className="flex-1">
+            <nav className="min-h-0 flex-1 overflow-y-auto">
                 <ul className="space-y-1.5">
                     {items.map((item) => {
                         const Icon = item.icon;
@@ -179,19 +179,19 @@ function SidebarBody({
                 </ul>
             </nav>
 
-            <section className="relative mt-4 overflow-hidden rounded-[18px] bg-[#1D449C] p-3.5 text-[#FFFFFF]">
+            <section className="relative mt-4 shrink-0 overflow-hidden rounded-[18px] bg-[#1D449C] p-3.5 text-[#FFFFFF]">
                 <div className="mb-4 inline-flex rounded-[10px] bg-[#3D72D1] p-2">
                     <Lock className="size-4" />
                 </div>
                 <p className="text-xs leading-4 text-[#EAECEF]">
                     {role === 'admin'
                         ? 'Review application, nilai essay dan project, lalu tetapkan keputusan akhir kandidat.'
-                        : 'Pantau progres seleksi, selesaikan assessment tepat waktu, dan lengkapi profilmu.'}
+                        : 'Pantau progres seleksi, selesaikan assessment tepat waktu.'}
                 </p>
                 <div className="pointer-events-none absolute right-0 bottom-0 size-20 translate-x-5 translate-y-5 rounded-full bg-[#3D72D1]/45" />
                 <div className="pointer-events-none absolute right-7 bottom-6 size-5 rounded-full bg-[#FFFFFF]/30" />
             </section>
-        </>
+        </div>
     );
 }
 
@@ -208,34 +208,40 @@ export function LayoutSidebar({ isMobileOpen, onClose }: LayoutSidebarProps) {
             <div
                 onClick={onClose}
                 className={cn(
-                    'fixed inset-0 z-40 bg-[#1D449C]/40 transition-opacity duration-300 lg:hidden',
+                    'fixed inset-0 z-40 bg-[#1D449C]/40 backdrop-blur-[2px] transition-all duration-300 lg:hidden',
                     isMobileOpen
-                        ? 'opacity-100'
+                        ? 'opacity-100 pointer-events-auto'
                         : 'pointer-events-none opacity-0',
                 )}
             />
 
             <aside
                 className={cn(
-                    'fixed inset-y-0 left-0 z-50 flex h-full w-[280px] max-w-[86vw] flex-col bg-[#C7CADD] p-4 transition-transform duration-300 lg:hidden',
-                    isMobileOpen ? 'translate-x-0' : '-translate-x-full',
+                    'fixed inset-y-0 left-0 z-50 flex h-full w-[280px] max-w-[86vw] flex-col overflow-hidden bg-[#C7CADD] transition-transform duration-300 ease-in-out lg:hidden',
+                    isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full',
                 )}
             >
-                <button
-                    type="button"
-                    onClick={onClose}
-                    aria-label="Tutup menu navigasi"
-                    className="absolute top-3 right-3 inline-flex size-8 items-center justify-center rounded-full bg-[#EAECEF] text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)]"
-                >
-                    <X className="size-4" />
-                </button>
-                <SidebarBody
-                    homeHref={homeHref}
-                    items={sidebarItems}
-                    pathname={pathname}
-                    role={role}
-                    onNavigate={onClose}
-                />
+                {/* Safe area padding top for notch */}
+                <div className="flex shrink-0 items-center justify-end px-4 pt-[max(1rem,env(safe-area-inset-top))]">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Tutup menu navigasi"
+                        className="inline-flex size-8 items-center justify-center rounded-full bg-[#EAECEF] text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)]"
+                    >
+                        <X className="size-4" />
+                    </button>
+                </div>
+                {/* Scrollable content */}
+                <div className="flex flex-1 flex-col overflow-hidden px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                    <SidebarBody
+                        homeHref={homeHref}
+                        items={sidebarItems}
+                        pathname={pathname}
+                        role={role}
+                        onNavigate={onClose}
+                    />
+                </div>
             </aside>
 
             <aside className="top-0 hidden h-full shrink-0 flex-col bg-[#C7CADD] p-4 lg:sticky lg:flex lg:h-screen lg:rounded-r-[24px]">

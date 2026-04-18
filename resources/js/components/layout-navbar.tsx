@@ -19,45 +19,50 @@ export function LayoutNavbar({ onMenuClick }: LayoutNavbarProps) {
     const getInitials = useInitials();
     const userName = auth.user?.name ?? 'User';
     const initials = getInitials(userName);
-    const currentDate = new Intl.DateTimeFormat('id-ID', {
+    const fullDate = new Intl.DateTimeFormat('id-ID', {
         weekday: 'long',
         day: '2-digit',
         month: 'long',
         year: 'numeric',
     }).format(new Date());
+    const shortDate = new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: 'short',
+    }).format(new Date());
 
     return (
-        <header className="sticky top-0 z-20 mb-3 flex flex-wrap items-center justify-between gap-2 rounded-[16px] border-b border-[#C7CADD]/70 bg-[#FFFFFF]/95 px-2 py-1.5 backdrop-blur supports-[backdrop-filter]:bg-[#FFFFFF]/75">
-            <div className="flex items-center gap-2">
+        <header className="sticky top-3 z-20 mx-1 mb-3 flex items-center justify-between gap-2 rounded-2xl border border-[#C7CADD]/60 bg-[#FFFFFF]/95 px-3 py-2 shadow-[0_4px_24px_rgba(29,68,156,0.12)] backdrop-blur-md supports-[backdrop-filter]:bg-[#FFFFFF]/80 sm:mx-2 sm:rounded-2xl lg:top-0 lg:mx-0 lg:rounded-[16px] lg:border-b lg:border-[#C7CADD]/70 lg:shadow-none">
+            <div className="flex items-center gap-2 min-w-0">
                 <button
                     type="button"
                     onClick={onMenuClick}
                     aria-label="Buka menu navigasi"
-                    className="inline-flex size-8 items-center justify-center rounded-full bg-[#EAECEF] text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)] lg:hidden"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#EAECEF] text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)] lg:hidden"
                 >
                     <Menu className="size-4" />
                 </button>
-                <p className="text-xs font-semibold capitalize text-[#1D449C]/85 sm:text-sm">
-                    {currentDate}
+                <p className="truncate text-xs font-semibold capitalize text-[#1D449C]/85 sm:text-sm">
+                    <span className="hidden sm:inline">{fullDate}</span>
+                    <span className="sm:hidden">{shortDate}</span>
                 </p>
             </div>
 
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <div className="ml-auto flex items-center gap-2.5 cursor-pointer outline-none group hover:opacity-80 transition-opacity">
+                    <div className="ml-auto flex items-center gap-2.5 cursor-pointer outline-none group hover:opacity-80 transition-opacity min-w-0">
                         <div className="hidden items-center gap-2.5 md:flex">
-                            <span className="text-base font-semibold text-[#1D449C]">{userName}</span>
-                            <span className="inline-flex size-8 items-center justify-center rounded-full bg-[#3D72D1] text-[10px] font-bold text-[#FFFFFF]">
+                            <span className="text-base font-semibold text-[#1D449C] truncate max-w-[150px]">{userName}</span>
+                            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#3D72D1] text-[10px] font-bold text-[#FFFFFF]">
                                 {initials}
                             </span>
                         </div>
 
                         <button
                             type="button"
-                            className="inline-flex items-center gap-1 rounded-full bg-[#EAECEF] px-2 py-1.5 text-[11px] font-semibold text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)] md:hidden outline-none"
+                            className="inline-flex items-center gap-1 rounded-full bg-[#EAECEF] px-2 py-1.5 text-[11px] font-semibold text-[#1D449C] shadow-[inset_0_0_0_1px_rgba(199,202,221,0.9)] md:hidden outline-none max-w-[120px]"
                         >
-                            {userName}
-                            <ChevronDown className="size-3.5" />
+                            <span className="truncate">{userName}</span>
+                            <ChevronDown className="size-3.5 shrink-0" />
                         </button>
                     </div>
                 </DropdownMenuTrigger>
