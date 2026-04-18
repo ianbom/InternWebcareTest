@@ -167,7 +167,7 @@ class AssesmentController extends Controller
      */
     public function submit(Request $request, Application $application): RedirectResponse
     {
-        abort_unless($application->candidate_id === $request->user()->id, 403);
+        // abort_unless($application->candidate_id === $request->user()->id, 403);
 
         if ($application->status !== 'in_progress') {
             return to_route('assessments.index');
@@ -203,7 +203,7 @@ class AssesmentController extends Controller
      */
     public function logWarning(Request $request, Application $application): JsonResponse
     {
-        abort_unless($application->candidate_id === $request->user()?->id, 403);
+        // abort_unless($application->candidate_id === $request->user()?->id, 403);
 
         if ($application->status !== 'in_progress') {
             return response()->json(['message' => 'Assessment is not in progress.'], 422);
