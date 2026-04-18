@@ -60,6 +60,50 @@ export type SelectOption = {
     label: string;
 };
 
+export type AdminUserRole = 'admin' | 'candidate';
+
+export type AdminUserSort =
+    | 'created_at_desc'
+    | 'created_at_asc'
+    | 'name_asc'
+    | 'name_desc'
+    | 'email_asc'
+    | 'email_desc'
+    | 'role_asc';
+
+export type AdminUserListItem = {
+    id: number;
+    name: string;
+    email: string;
+    phone: string | null;
+    role: AdminUserRole;
+    cv_path: string | null;
+    cv_url: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+};
+
+export type AdminUserFilters = {
+    search: string;
+    role: string;
+    has_cv: string;
+    sort: AdminUserSort;
+};
+
+export type AdminUserFormData = {
+    name: string;
+    email: string;
+    phone: string;
+    role: AdminUserRole;
+    password: string;
+    password_confirmation: string;
+};
+
+export type AdminUserPasswordFormData = {
+    password: string;
+    password_confirmation: string;
+};
+
 export type AssessmentSummary = {
     id: number;
     position_id: number;

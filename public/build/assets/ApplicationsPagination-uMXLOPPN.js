@@ -1,0 +1,1 @@
+import{t as e}from"./ApplicationsPagination-Ckw2vFiH.js";export{e as ApplicationsPagination};

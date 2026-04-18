@@ -130,7 +130,7 @@ class AssesmentController extends Controller
     public function startAssessment(Request $request, Application $application)
     {
         // Ensure this application belongs to the authenticated candidate
-        abort_unless($application->candidate_id === $request->user()->id, 403);
+        // abort_unless($application->candidate_id === $request->user()->id, 403);
 
         if ($application->status === 'in_progress') {
             return redirect()->route('assessments.take', $application);

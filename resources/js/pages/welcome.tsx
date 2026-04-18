@@ -1,10 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
-    Globe, ChevronDown, ChevronRight,
-    Code2, PenTool, BarChart3, Megaphone,
-    CheckCircle, Users, Star,
-    Briefcase, Calendar, Award, Zap, Heart, Palette,
+    ChevronDown, ChevronRight,
+    Code2, PenTool, Megaphone,
+    CheckCircle, Users,
+    Briefcase, Award, Heart, Palette,
     GraduationCap, Rocket, Target, MessageSquare,
 } from 'lucide-react';
 import { WelcomeNavbar } from './welcome/components/WelcomeNavbar';
@@ -52,20 +52,6 @@ const benefits = [
     { icon: <Rocket className="w-5 h-5" />, title: 'Portfolio Kuat', desc: 'Hasilkan karya nyata sebagai bukti kemampuan Anda.' },
     { icon: <Target className="w-5 h-5" />, title: 'Skill Industri', desc: 'Teknologi dan tools yang digunakan industri saat ini.' },
     { icon: <Heart className="w-5 h-5" />, title: 'Komunitas Solid', desc: 'Bergabung dalam komunitas alumni yang saling mendukung.' },
-];
-
-const curriculum = [
-    { week: 'Minggu 1-2', title: 'Orientasi & Onboarding', desc: 'Pengenalan tim, tools, workflow, dan pembagian divisi magang.' },
-    { week: 'Minggu 3-5', title: 'Pelatihan Intensif', desc: 'Materi teknis dan soft skills yang relevan dengan divisi pilihan.' },
-    { week: 'Minggu 6-8', title: 'Proyek Nyata', desc: 'Terlibat langsung dalam proyek klien dengan bimbingan mentor.' },
-    { week: 'Minggu 9-11', title: 'Mandiri & Presentasi', desc: 'Mengelola tugas sendiri dan presentasi hasil kerja ke tim.' },
-    { week: 'Minggu 12', title: 'Evaluasi & Kelulusan', desc: 'Sesi evaluasi akhir, pemberian sertifikat, dan perayaan kelulusan.' },
-];
-
-const testimonials = [
-    { name: 'Rizky Aditya', role: 'Web Development Intern', univ: 'ITS Surabaya', avatar: 'RA', color: 'bg-[#0E3F97]', quote: 'Magang di Webcare.idn benar-benar mengubah karir saya. Saya terlibat dalam 3 proyek klien sungguhan dan sekarang sudah diterima kerja di startup tech!' },
-    { name: 'Nadia Putri', role: 'UI/UX Design Intern', univ: 'UGM Yogyakarta', avatar: 'NP', color: 'bg-purple-600', quote: 'Mentornya sangat supportif dan ilmunya langsung applicable. Portfolio saya jadi jauh lebih kuat setelah magang di sini.' },
-    { name: 'Farhan Malik', role: 'Digital Marketing Intern', univ: 'UNAIR Surabaya', avatar: 'FM', color: 'bg-emerald-600', quote: 'Bukan magang formalitas! Saya belajar SEO, kelola sosmed klien, dan hasilnya bisa langsung saya ukur. Pengalaman yang sangat berharga.' },
 ];
 
 const faqs = [

@@ -6,6 +6,7 @@ import {
     Lock,
     PaperclipIcon,
     UserRound,
+    UsersRound,
     X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -18,6 +19,7 @@ import {
 } from '@/routes/assessments';
 import { index as positionsIndex } from '@/routes/positions';
 import { edit as profileEdit } from '@/routes/profile';
+import { index as usersIndex } from '@/routes/users';
 import type { User } from '@/types';
 
 type SidebarItem = {
@@ -60,6 +62,12 @@ function getSidebarItems(role?: User['role']): SidebarItem[] {
                 href: applicationsIndex().url,
                 activePaths: ['/applications'],
                 icon: PaperclipIcon,
+            },
+            {
+                title: 'Users',
+                href: usersIndex().url,
+                activePaths: ['/users'],
+                icon: UsersRound,
             },
             {
                 title: 'Profile',

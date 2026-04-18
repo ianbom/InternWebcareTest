@@ -5,6 +5,7 @@ use App\Http\Controllers\AssesmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProjectSubmissionController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -19,6 +20,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('applications', [AdminApplicationController::class, 'index'])->name('applications.index');
         Route::get('applications/{application}', [AdminApplicationController::class, 'show'])->name('applications.show');
         Route::put('applications/{application}/review', [AdminApplicationController::class, 'updateReview'])->name('applications.review.update');
+
+        Route::get('users', [UserController::class, 'index'])->name('users.index');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
 
         Route::post('positions', [PositionController::class, 'store'])->name('positions.store');
         Route::put('positions/{position}', [PositionController::class, 'update'])->name('positions.update');
