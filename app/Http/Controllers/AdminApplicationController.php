@@ -38,7 +38,6 @@ class AdminApplicationController extends Controller
         AdminApplicationReviewRequest $request,
         Application $application,
     ): RedirectResponse {
-        /** @var User $admin */
         $admin = $request->user();
 
         $this->adminApplicationService->updateReview(

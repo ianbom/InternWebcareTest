@@ -47,5 +47,5 @@ createInertiaApp({
     },
 });
 
-// This will set light / dark mode on load...
+// Keep the application locked to light mode on load.
 initializeTheme();

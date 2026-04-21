@@ -124,16 +124,13 @@ function SidebarBody({
                 className="mb-5 flex items-center gap-2.5 px-1.5"
                 onClick={handleNavigate}
             >
-                <div className="grid grid-cols-2 gap-1.5">
-                    {Array.from({ length: 4 }).map((_, index) => (
-                        <span
-                            key={index}
-                            className="size-2.5 rounded-[4px] bg-[#1D449C]"
-                        />
-                    ))}
-                </div>
+                <img
+                    src="/img/WSidebar.png"
+                    alt="Webcare"
+                    className="h-11 w-auto object-contain"
+                />
                 <span className="text-[24px] font-extrabold tracking-tight text-[#1D449C]">
-                    WebcareIntern
+                    Webcare Intern
                 </span>
             </Link>
 

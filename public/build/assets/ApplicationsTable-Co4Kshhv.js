@@ -1,1 +1,0 @@
-import{t as e}from"./ApplicationsTable-ChqBkTsu.js";export{e as ApplicationsTable};

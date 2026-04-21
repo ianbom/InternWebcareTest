@@ -1,0 +1,1 @@
+import{n as e,t}from"./jsx-runtime-B99rEt_x.js";var n=e(),r=t();function i(e){let t=(0,n.c)(2),{score:i}=e,a=i??`-`,o;return t[0]===a?o=t[1]:(o=(0,r.jsx)(`span`,{className:`text-2xl font-black text-[#1D449C]`,children:a}),t[0]=a,t[1]=o),o}export{i as ScoreBadge};

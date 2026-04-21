@@ -12,6 +12,14 @@ type AssessmentAnswersSectionProps = {
     onEssayScoreChange: (answerId: number, score: string) => void;
 };
 
+const formatMcqResult = (score: number | null | undefined): string => {
+    if (score === null || score === undefined) {
+        return '-';
+    }
+
+    return Number(score) > 0 ? 'Benar' : 'Salah';
+};
+
 export function AssessmentAnswersSection({
     errors,
     essayAnswers,
@@ -40,7 +48,7 @@ export function AssessmentAnswersSection({
                                     Correct: <b>{answer.correct_answer ?? '-'}</b>
                                 </span>
                                 <span className="rounded-xl bg-white px-3 py-2">
-                                    Auto score: <b>{answer.auto_score ?? '-'}</b>
+                                    Hasil: <b>{formatMcqResult(answer.auto_score)}</b>
                                 </span>
                             </div>
                         </div>

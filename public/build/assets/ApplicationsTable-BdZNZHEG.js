@@ -1,0 +1,1 @@
+import{t as e}from"./ApplicationsTable-CxXWSSpH.js";export{e as ApplicationsTable};

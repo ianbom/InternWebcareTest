@@ -24,7 +24,7 @@ export function ApplicationsTable({
                         <th className="px-5 py-3">Contact</th>
                         <th className="px-5 py-3">Position</th>
                         <th className="px-5 py-3">Status</th>
-                        <th className="px-5 py-3">Auto Score</th>
+                        {/* <th className="px-5 py-3">Auto Score</th> */}
                         <th className="px-5 py-3">Applied</th>
                         <th className="px-5 py-3">Submitted</th>
                         <th className="px-5 py-3 text-right">Action</th>
@@ -60,9 +60,9 @@ export function ApplicationsTable({
                             <td className="px-5 py-4">
                                 <StatusBadge status={application.status} />
                             </td>
-                            <td className="px-5 py-4">
+                            {/* <td className="px-5 py-4">
                                 <ScoreBadge score={application.total_score} />
-                            </td>
+                            </td> */}
                             <td className="px-5 py-4 text-[#526078]">
                                 <span className="inline-flex items-center gap-2">
                                     <CalendarDays className="size-4" />
