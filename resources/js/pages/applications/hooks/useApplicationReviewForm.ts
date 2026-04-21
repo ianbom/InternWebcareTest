@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { toast } from 'sonner';
 import { update } from '@/routes/applications/review';
 import type {
     AdminApplicationDetail,
@@ -76,6 +77,14 @@ export function useApplicationReviewForm(
 
         form.put(update.url(application.id, { query: listQuery }), {
             preserveScroll: true,
+            onError: () => {
+                toast.error(
+                    'Review belum tersimpan. Periksa kembali skor essay, skor project, dan status final.',
+                );
+            },
+            onSuccess: () => {
+                toast.success('Review application berhasil disimpan.');
+            },
         });
     };
 

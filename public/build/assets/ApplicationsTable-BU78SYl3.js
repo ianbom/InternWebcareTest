@@ -1,0 +1,1 @@
+import{t as e}from"./ApplicationsTable-DihBnZAw.js";export{e as ApplicationsTable};

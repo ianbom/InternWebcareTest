@@ -1,0 +1,1 @@
+import{t as e}from"./ApplicationsPagination-DXksPUDj.js";export{e as ApplicationsPagination};

@@ -127,9 +127,9 @@ function SidebarBody({
                 <img
                     src="/img/WSidebar.png"
                     alt="Webcare"
-                    className="h-11 w-auto object-contain"
+                    className="h-8 w-auto object-contain"
                 />
-                <span className="text-[24px] font-extrabold tracking-tight text-[#1D449C]">
+                <span className="text-[20px] font-extrabold tracking-tight text-[#1D449C]">
                     Webcare Intern
                 </span>
             </Link>
