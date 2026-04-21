@@ -184,6 +184,10 @@ class AdminApplicationService
                 ->firstOrFail();
 
             foreach ($payload['essay_reviews'] ?? [] as $review) {
+                if (! is_array($review) || blank($review['answer_id'] ?? null)) {
+                    continue;
+                }
+
                 Answer::query()
                     ->whereKey($review['answer_id'])
                     ->where('application_id', $application->id)
@@ -196,6 +200,10 @@ class AdminApplicationService
             }
 
             foreach ($payload['project_reviews'] ?? [] as $review) {
+                if (! is_array($review) || blank($review['project_submission_id'] ?? null)) {
+                    continue;
+                }
+
                 ProjectSubmission::query()
                     ->whereKey($review['project_submission_id'])
                     ->where('application_id', $application->id)
