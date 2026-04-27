@@ -57,7 +57,7 @@ const benefits = [
 const faqs = [
     { q: 'Siapa yang bisa mendaftar program magang ini?', a: 'Mahasiswa aktif semester 3 ke atas dari semua jurusan, baik teknik, desain, bisnis, maupun ilmu komunikasi.' },
     { q: 'Apakah ada uang saku atau kompensasi?', a: 'Terdapat apresiasi berbasis performa untuk intern yang menyelesaikan program dengan baik. Detail akan diinformasikan saat interview.' },
-    { q: 'Apakah bisa dilakukan secara remote?', a: 'Ya! Kami membuka opsi magang hybrid (remote & onsite di Malang). Sebagian besar aktivitas dapat dilakukan secara online.' },
+    { q: 'Apakah bisa dilakukan secara remote?', a: 'Ya! Kami membuka opsi magang hybrid (remote & onsite di Sidoarjo). Sebagian besar aktivitas dapat dilakukan secara online.' },
     { q: 'Berapa lama durasi program magang?', a: 'Durasi standar 3-6 bulan disesuaikan kebutuhan akademik.' },
     { q: 'Apakah tersedia surat keterangan resmi?', a: 'Tentu! Kami menerbitkan surat keterangan magang, sertifikat kelulusan, dan dapat membantu penyediaan dokumen akademik yang diperlukan.' },
 ];

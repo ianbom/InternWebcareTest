@@ -4,18 +4,21 @@ import type {
     AdminApplicationDetail,
     AdminAssessmentSummary,
     AdminCandidateDetail,
+    AdminProjectSubmission,
 } from '@/types';
 
 type ApplicationSummaryCardsProps = {
     application: AdminApplicationDetail;
     assessment: AdminAssessmentSummary;
     candidate: AdminCandidateDetail;
+    projectSubmissions: AdminProjectSubmission[];
 };
 
 export function ApplicationSummaryCards({
     application,
     assessment,
     candidate,
+    projectSubmissions,
 }: ApplicationSummaryCardsProps) {
     return (
         <section className="grid gap-4 md:grid-cols-3">
@@ -28,6 +31,7 @@ export function ApplicationSummaryCards({
                     <SummaryRow label="Applied" value={formatDateTime(application.created_at)} />
                     <SummaryRow label="Started" value={formatDateTime(application.started_at)} />
                     <SummaryRow label="Submitted" value={formatDateTime(application.submitted_at)} />
+                    <SummaryRow label="Deadline" value={formatDateTime(projectSubmissions[0]?.deadline_at)} />
                 </dl>
             </div>
 
@@ -39,6 +43,14 @@ export function ApplicationSummaryCards({
                 <dl className="space-y-2 text-sm">
                     <SummaryRow label="Email" value={candidate.email ?? '-'} breakAll />
                     <SummaryRow label="Phone" value={candidate.phone ?? '-'} />
+                    <SummaryRow
+                        label="Internship Duration"
+                        value={candidate.duration ? `${candidate.duration} bulan` : '-'}
+                    />
+                    <SummaryRow
+                        label="Intern Start"
+                        value={candidate.intern_start ?? '-'}
+                    />
                     <div>
                         <dt className="text-[#6B7894]">CV</dt>
                         <dd>

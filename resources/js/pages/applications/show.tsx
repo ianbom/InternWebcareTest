@@ -120,6 +120,7 @@ export default function ApplicationsShow({
                     application={application}
                     assessment={assessment}
                     candidate={candidate}
+                    projectSubmissions={project_submissions}
                 />
 
                 {/* ── Main 2-column layout ── */}

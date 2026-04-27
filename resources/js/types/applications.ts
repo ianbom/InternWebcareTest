@@ -60,6 +60,8 @@ export type AdminCandidateDetail = {
     email: string | null;
     phone: string | null;
     cv_url: string | null;
+    duration: number | null;
+    intern_start: string | null;
 };
 
 export type AdminPositionSummary = {

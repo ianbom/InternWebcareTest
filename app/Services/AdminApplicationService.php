@@ -82,7 +82,7 @@ class AdminApplicationService
     public function getApplicationDetail(Application $application): array
     {
         $application->load([
-            'candidate:id,name,email,phone,cv_path',
+            'candidate:id,name,email,phone,cv_path,duration,intern_start',
             'position:id,title',
             'assessment:id,title,duration_minutes',
             'answers.question:id,type,question_text,correct_answer,point_value,order_index',
@@ -112,6 +112,8 @@ class AdminApplicationService
                 'email' => $application->candidate?->email,
                 'phone' => $application->candidate?->phone,
                 'cv_url' => $this->storageUrl($application->cv_snapshot ?: $application->candidate?->cv_path),
+                'duration' => $application->candidate?->duration,
+                'intern_start' => $application->candidate?->intern_start ? \Carbon\Carbon::parse($application->candidate->intern_start)->toDateString() : null,
             ],
             'position' => [
                 'id' => $application->position?->id,
