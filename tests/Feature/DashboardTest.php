@@ -46,14 +46,44 @@ test('authenticated users can visit the dashboard', function () {
 });
 
 test('candidate dashboard returns null application when candidate has not applied', function () {
-    $candidate = User::factory()->create(['role' => 'candidate']);
+    $candidate = User::factory()->create([
+        'role' => 'candidate',
+        'phone' => '081234567890',
+        'cv_path' => 'cvs/candidate.pdf',
+        'duration' => 6,
+        'intern_start' => '2026-06-01',
+    ]);
 
     $this->actingAs($candidate)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('dashboard')
+            ->where('candidate.phone', '081234567890')
+            ->where('candidate.duration', 6)
+            ->where('candidate.internStart', '2026-06-01')
+            ->where('candidate.profileCompletion', 100)
             ->where('application', null)
+        );
+});
+
+test('candidate dashboard profile completion stays incomplete when duration or intern start is missing', function () {
+    $candidate = User::factory()->create([
+        'role' => 'candidate',
+        'phone' => '081234567890',
+        'cv_path' => 'cvs/candidate.pdf',
+        'duration' => null,
+        'intern_start' => null,
+    ]);
+
+    $this->actingAs($candidate)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('dashboard')
+            ->where('candidate.profileCompletion', 70)
+            ->where('candidate.duration', null)
+            ->where('candidate.internStart', null)
         );
 });
 

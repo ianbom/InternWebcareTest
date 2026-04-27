@@ -32,11 +32,35 @@ const STEP_ITEMS = [
     { key: 'result', label: 'Hasil Akhir', icon: Flag },
 ] as const;
 
+function formatInternshipStartDate(value: string | null): string {
+    if (!value) {
+        return '-';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    }).format(date);
+}
+
 export default function Dashboard({ candidate, application }: Props) {
     const activeStep = application?.activeStep ?? 'profile';
     const showActiveApplication = Boolean(application);
     const actionMethod = application?.nextActionMethod ?? 'get';
     const hasProjectTasks = application?.hasProjectTasks ?? false;
+    const isProfileComplete = Boolean(
+        candidate.phone &&
+            candidate.cv &&
+            candidate.duration &&
+            candidate.internStart,
+    );
 
     return (
         <AppLayout>
@@ -231,6 +255,17 @@ export default function Dashboard({ candidate, application }: Props) {
                             <p className="text-xs font-bold tracking-wide text-[#7A849B]">
                                 DATA USER
                             </p>
+                            <div
+                                className={`mt-3 rounded-2xl border px-3 py-2 text-xs leading-relaxed ${
+                                    isProfileComplete
+                                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                        : 'border-amber-200 bg-amber-50 text-amber-700'
+                                }`}
+                            >
+                                {isProfileComplete
+                                    ? 'Profil Anda sudah lengkap dan siap dipakai untuk mendaftar magang.'
+                                    : 'Lengkapi data profil sebelum mendaftar magang. Pastikan memperbaruinya dengan data terbaru'}
+                            </div>
                             <div className="mt-3 space-y-3 text-sm">
                                 <div className="space-y-1">
                                     <p className="text-xs font-semibold text-[#7A849B]">
@@ -254,6 +289,26 @@ export default function Dashboard({ candidate, application }: Props) {
                                     </p>
                                     <p className="font-medium text-[#0F1E46]">
                                         {candidate.phone ?? '-'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-semibold text-[#7A849B]">
+                                        Duration
+                                    </p>
+                                    <p className="font-medium text-[#0F1E46]">
+                                        {candidate.duration
+                                            ? `${candidate.duration} bulan`
+                                            : '-'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-semibold text-[#7A849B]">
+                                        Internship Start
+                                    </p>
+                                    <p className="font-medium text-[#0F1E46]">
+                                        {formatInternshipStartDate(
+                                            candidate.internStart,
+                                        )}
                                     </p>
                                 </div>
                                 <div className="space-y-1">

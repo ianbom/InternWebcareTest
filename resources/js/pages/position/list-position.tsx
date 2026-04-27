@@ -17,7 +17,13 @@ export default function ListPosition({
     positions,
 }: CandidatePositionProps) {
     const { auth } = usePage<any>().props;
-    const isProfileComplete = Boolean(auth.user.phone && auth.user.cv_path);
+    const missingProfileFields = [
+        !auth.user.phone ? 'phone' : null,
+        !auth.user.cv_path ? 'cv' : null,
+        !auth.user.duration ? 'duration' : null,
+        !auth.user.intern_start ? 'intern_start' : null,
+    ].filter((field): field is string => field !== null);
+    const isProfileComplete = missingProfileFields.length === 0;
     const positionList = normalizePositions(positions);
     const [selectedPosition, setSelectedPosition] =
         useState<CandidatePosition | null>(null);
@@ -75,6 +81,7 @@ export default function ListPosition({
                     applyingPositionId={applyingPositionId}
                     hasAppliedPosition={hasAppliedPosition}
                     isProfileComplete={isProfileComplete}
+                    missingProfileFields={missingProfileFields}
                     onApply={handleApplyPosition}
                     onClose={closeDetailModal}
                     position={selectedPosition}

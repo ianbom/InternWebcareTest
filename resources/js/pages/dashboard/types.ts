@@ -5,6 +5,8 @@ export interface CandidateData {
     name: string;
     email: string;
     phone: string | null;
+    duration: number | null;
+    internStart: string | null;
     cv: {
         name: string;
         url: string;

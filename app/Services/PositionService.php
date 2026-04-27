@@ -132,6 +132,13 @@ class PositionService
                 ];
             }
 
+            if (! $this->hasCompleteCandidateProfile($candidate)) {
+                return [
+                    'success' => false,
+                    'message' => 'Lengkapi profil Anda terlebih dahulu. Nomor telepon, CV, durasi magang, dan tanggal mulai magang wajib diisi sebelum mendaftar.',
+                ];
+            }
+
             $assessment = $this->getInitialAssessmentForPosition($position);
             if (! $assessment) {
                 return [
@@ -267,6 +274,14 @@ class PositionService
         return $candidate->applications()
             ->whereIn('status', self::ACTIVE_SELECTION_STATUSES)
             ->exists();
+    }
+
+    private function hasCompleteCandidateProfile(User $candidate): bool
+    {
+        return filled($candidate->phone)
+            && filled($candidate->cv_path)
+            && filled($candidate->duration)
+            && filled($candidate->intern_start);
     }
 
     private function getInitialAssessmentForPosition(Position $position): ?Assessment

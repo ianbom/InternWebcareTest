@@ -27,6 +27,8 @@ class DashboardService
                 'name' => $candidate->name,
                 'email' => $candidate->email,
                 'phone' => $candidate->phone,
+                'duration' => $candidate->duration,
+                'internStart' => $candidate->intern_start,
                 'cv' => $candidate->cv_path ? [
                     'name' => basename($candidate->cv_path),
                     'url' => Storage::disk('public')->url($candidate->cv_path),
@@ -41,13 +43,21 @@ class DashboardService
 
     private function calculateProfileCompletion(User $candidate): int
     {
-        $completion = 55;
+        $completion = 40;
 
         if (filled($candidate->phone)) {
             $completion += 15;
         }
 
         if (filled($candidate->cv_path)) {
+            $completion += 15;
+        }
+
+        if (filled($candidate->duration)) {
+            $completion += 15;
+        }
+
+        if (filled($candidate->intern_start)) {
             $completion += 30;
         }
 

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('phone', 20)->nullable();
             $table->string('cv_path')->nullable();
             $table->enum('role', ['admin', 'candidate'])->default('candidate');
+            $table->integer('duration')->nullable();
+            $table->date('intern_start')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamp('created_at')->useCurrent();

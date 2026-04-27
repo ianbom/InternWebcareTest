@@ -11,7 +11,10 @@ uses(RefreshDatabase::class);
 test('candidate can apply to an active position', function () {
     $candidate = User::factory()->create([
         'role' => 'candidate',
+        'phone' => '081234567890',
         'cv_path' => 'cv/candidate.pdf',
+        'duration' => 6,
+        'intern_start' => '2026-06-01',
     ]);
 
     $position = Position::query()->create([
@@ -38,6 +41,40 @@ test('candidate can apply to an active position', function () {
         'cv_snapshot' => 'cv/candidate.pdf',
     ]);
 });
+
+test('candidate cannot apply when required profile data is incomplete', function (array $candidateOverrides) {
+    $candidate = User::factory()->create([
+        'role' => 'candidate',
+        'phone' => '081234567890',
+        'cv_path' => 'cv/candidate.pdf',
+        'duration' => 6,
+        'intern_start' => '2026-06-01',
+        ...$candidateOverrides,
+    ]);
+
+    $position = Position::query()->create([
+        'title' => 'Frontend Developer',
+        'description' => 'Membangun antarmuka web.',
+        'is_active' => true,
+    ]);
+
+    Assessment::query()->create([
+        'position_id' => $position->id,
+        'title' => 'Frontend Assessment',
+        'duration_minutes' => 60,
+    ]);
+
+    $this->actingAs($candidate)
+        ->post(route('positions.apply', $position))
+        ->assertRedirect(route('positions.index'));
+
+    $this->assertDatabaseCount('applications', 0);
+})->with([
+    'missing phone' => [['phone' => null]],
+    'missing cv' => [['cv_path' => null]],
+    'missing duration' => [['duration' => null]],
+    'missing intern start' => [['intern_start' => null]],
+]);
 
 test('candidate cannot apply when already in selection process', function () {
     $candidate = User::factory()->create([

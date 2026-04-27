@@ -19,6 +19,7 @@ interface PositionDetailModalProps {
     applyingPositionId: number | null;
     hasAppliedPosition: boolean;
     isProfileComplete: boolean;
+    missingProfileFields: string[];
     onApply: (positionId: number) => void;
     onClose: () => void;
     position: CandidatePosition | null;
@@ -28,6 +29,7 @@ export function PositionDetailModal({
     applyingPositionId,
     hasAppliedPosition,
     isProfileComplete,
+    missingProfileFields,
     onApply,
     onClose,
     position,
@@ -129,13 +131,13 @@ export function PositionDetailModal({
                             <p className="text-sm leading-snug">
                                 {isProfileComplete ? (
                                     <span className="text-[#7A849B]">
-                                        Pastikan CV dan nomor telepon Anda sudah
-                                        diisi sebelum mendaftar.
+                                        Pastikan data profil Anda sudah benar
+                                        sebelum mendaftar magang.
                                     </span>
                                 ) : (
                                     <span className="font-semibold text-rose-500">
                                         Lengkapi profil Anda terlebih dahulu
-                                        untuk bisa mendaftar.
+                                        untuk bisa mendaftar
                                     </span>
                                 )}
                             </p>

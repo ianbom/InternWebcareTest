@@ -5,6 +5,13 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import { getCvDisplay } from './utils/profile';
@@ -21,13 +28,14 @@ export default function Profile({
         typeof auth.user.cv_path === 'string' ? auth.user.cv_path : null;
     const currentCv = getCvDisplay(currentCvPath);
 
+
     return (
         <>
             <Head title="Profile settings" />
 
             <h1 className="sr-only">Profile settings</h1>
 
-            <div className="space-y-6">
+            <div className="space-y-6 w-full max-w-2xl">
                 <Heading
                     variant="small"
                     title="Profile information"
@@ -106,12 +114,53 @@ export default function Profile({
                             </div>
 
                             <div className="grid gap-2">
+                                <Label htmlFor="duration">Internship Duration</Label>
+
+                                <Select
+                                    name="duration"
+                                    defaultValue={auth.user.duration ? String(auth.user.duration) : undefined}
+                                >
+                                    <SelectTrigger id="duration" className="mt-1 w-full">
+                                        <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="3">3 Months</SelectItem>
+                                        <SelectItem value="4">4 Months</SelectItem>
+                                        <SelectItem value="5">5 Months</SelectItem>
+                                        <SelectItem value="6">6 Months</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.duration}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="intern_start">Internship Start Date</Label>
+
+                                <Input
+                                    id="intern_start"
+                                    type="date"
+                                    className="mt-1 block w-full"
+                                    defaultValue={auth.user.intern_start ? String(auth.user.intern_start).split('T')[0].split(' ')[0] : ''}
+                                    name="intern_start"
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.intern_start}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="cv">CV</Label>
 
                                 <Input
                                     id="cv"
                                     type="file"
-                                    className="mt-1 block w-full"
+                                    className="mt-1 block w-full overflow-hidden text-ellipsis whitespace-nowrap file:mr-2 file:text-xs sm:file:text-sm"
                                     name="cv"
                                     accept=".pdf,.doc,.docx"
                                 />
@@ -121,9 +170,9 @@ export default function Profile({
                                         href={currentCv.url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-sm text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current dark:decoration-neutral-500"
+                                        className="text-sm text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current dark:decoration-neutral-500 break-all"
                                     >
-                                        {currentCv.name ?? 'Lihat CV'}
+                                       Lihat CV
                                     </a>
                                 )}
 
@@ -141,7 +190,7 @@ export default function Profile({
                                             <Link
                                                 href={send()}
                                                 as="button"
-                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500 break-words"
                                             >
                                                 Click here to resend the
                                                 verification email.
@@ -162,6 +211,7 @@ export default function Profile({
                                 <Button
                                     disabled={processing}
                                     data-test="update-profile-button"
+                                    className="w-full sm:w-auto"
                                 >
                                     Save
                                 </Button>
@@ -170,8 +220,6 @@ export default function Profile({
                     )}
                 </Form>
             </div>
-
-            {/* <DeleteUser /> */}
         </>
     );
 }

@@ -4,6 +4,8 @@ export type User = {
     email: string;
     phone?: string | null;
     cv_path?: string | null;
+    duration?: number | null;
+    intern_start?: string | null;
     role: 'admin' | 'candidate';
     avatar?: string;
     email_verified_at: string | null;

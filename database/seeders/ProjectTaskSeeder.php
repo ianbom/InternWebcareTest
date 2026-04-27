@@ -14,46 +14,40 @@ class ProjectTaskSeeder extends Seeder
     public function run(): void
     {
         $projectTaskBlueprints = [
-            'Laravel Fundamentals Test' => [
+
+            // ── Front-End Developer ──────────────────────────────────────
+            'Front-End Developer Assessment' => [
                 [
-                    'title' => 'Build Mini Blog API',
-                    'description' => 'Buat REST API sederhana untuk modul blog (CRUD post + authentication) menggunakan Laravel. Sertakan dokumentasi endpoint dan struktur database.',
+                    'title' => 'Landing Page Responsif',
+                    'description' => "Buat 1 landing page responsif dengan minimal 3 section: Hero, About/Services, dan Contact/CTA.\n\nKetentuan:\n- Gunakan HTML, CSS, dan JavaScript murni atau framework frontend pilihan Anda.\n- Halaman harus tampil baik di mobile maupun desktop.\n- Deploy project ke platform pilihan Anda (Netlify, Vercel, dll.).\n\nHasil yang dikumpulkan:\n- Link repository GitHub\n- Link website yang sudah di-deploy",
                     'deadline_hours' => 72,
                 ],
             ],
-            'Frontend Logic & API Integration' => [
+
+            // ── Back-End Developer ───────────────────────────────────────
+            'Back-End Developer Assessment' => [
                 [
-                    'title' => 'Dashboard Konsumsi API',
-                    'description' => 'Bangun halaman dashboard frontend yang menampilkan data dari API eksternal/internal dengan state loading, error handling, search, dan pagination.',
+                    'title' => 'REST API Sederhana E-Commerce',
+                    'description' => "Buat API sederhana untuk sistem e-commerce menggunakan framework backend pilihan Anda (Node.js/Express, Laravel, dll.).\n\nFitur minimal yang harus ada:\n- CRUD produk (create, read, update, delete)\n- Autentikasi (register & login)\n- Minimal 1 relasi antar tabel (misal: produk & kategori)\n\nDokumentasi wajib disertakan:\n- Arsitektur sistem\n- Teknologi yang digunakan\n- ERD (Entity Relationship Diagram)\n\nHasil yang dikumpulkan:\n- Link repository GitHub\n- File dokumentasi (PDF/DOC) atau README yang lengkap",
                     'deadline_hours' => 72,
                 ],
             ],
-            'Visual Design Principles' => [
+
+            // ── Graphic Designer ─────────────────────────────────────────
+            'Graphic Designer Assessment' => [
                 [
-                    'title' => 'Campaign Poster Set',
-                    'description' => 'Rancang 3 varian poster digital untuk kampanye produk yang sama dengan mempertahankan konsistensi visual, hierarki informasi, dan tipografi.',
-                    'deadline_hours' => 48,
-                ],
-            ],
-            'Branding Case Study' => [
-                [
-                    'title' => 'Brand Identity Revamp',
-                    'description' => 'Lakukan studi kasus rebranding untuk UMKM fiktif: logo, warna, tipografi, moodboard, serta contoh penerapan pada media sosial.',
+                    'title' => '3 Desain Feed Instagram – Digital Agency',
+                    'description' => "Buat 3 desain feed Instagram bertema Digital Agency.\n\nKetentuan:\n- Ukuran: 1080×1080 px\n- Tema: Digital Agency (modern, profesional)\n- Konsisten dalam palet warna, tipografi, dan gaya visual\n- Setiap desain harus menarik dan siap posting\n\nHasil yang dikumpulkan:\n- File desain (format PNG/JPG resolusi tinggi)\n- Link Google Drive atau Behance/Dribbble",
                     'deadline_hours' => 72,
                 ],
             ],
-            'UX Research & Problem Solving' => [
+
+            // ── Video Editor ─────────────────────────────────────────────
+            'Video Editor Assessment' => [
                 [
-                    'title' => 'UX Audit & Improvement Plan',
-                    'description' => 'Lakukan audit UX pada aplikasi publik pilihan Anda, identifikasi minimal 5 masalah utama, lalu susun prioritas perbaikan berbasis dampak.',
-                    'deadline_hours' => 60,
-                ],
-            ],
-            'Wireframing and Prototyping' => [
-                [
-                    'title' => 'End-to-End Feature Prototype',
-                    'description' => 'Buat wireframe dan prototype interaktif untuk alur utama sebuah fitur (minimal 5 layar) lengkap dengan flow dan alasan keputusan desain.',
-                    'deadline_hours' => 60,
+                    'title' => 'Edit Video Promosi 30–60 Detik',
+                    'description' => "Edit 1 video promosi berdurasi 30–60 detik menggunakan software video editor pilihan Anda.\n\nKetentuan:\n- Tambahkan musik latar yang sesuai\n- Tambahkan transisi antar klip\n- Tambahkan subtitle/teks keterangan\n- Video harus terasa profesional dan menarik\n\nHasil yang dikumpulkan:\n- Link video hasil edit (YouTube unlisted, Google Drive, atau Vimeo)\n- Sertakan file mentah jika memungkinkan",
+                    'deadline_hours' => 72,
                 ],
             ],
         ];

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Assessment;
 use App\Models\Position;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class AssesmentSeeder extends Seeder
@@ -15,17 +14,17 @@ class AssesmentSeeder extends Seeder
     public function run(): void
     {
         $assessmentBlueprints = [
-            'Web Developer' => [
-                ['title' => 'Laravel Fundamentals Test', 'duration_minutes' => 90],
-                ['title' => 'Frontend Logic & API Integration', 'duration_minutes' => 75],
+            'Front-End Developer' => [
+                ['title' => 'Front-End Developer Assessment', 'duration_minutes' => 60],
+            ],
+            'Back-End Developer' => [
+                ['title' => 'Back-End Developer Assessment', 'duration_minutes' => 60],
             ],
             'Graphic Designer' => [
-                ['title' => 'Visual Design Principles', 'duration_minutes' => 60],
-                ['title' => 'Branding Case Study', 'duration_minutes' => 80],
+                ['title' => 'Graphic Designer Assessment', 'duration_minutes' => 45],
             ],
-            'UI/UX Designer' => [
-                ['title' => 'UX Research & Problem Solving', 'duration_minutes' => 70],
-                ['title' => 'Wireframing and Prototyping', 'duration_minutes' => 75],
+            'Video Editor' => [
+                ['title' => 'Video Editor Assessment', 'duration_minutes' => 45],
             ],
         ];
 

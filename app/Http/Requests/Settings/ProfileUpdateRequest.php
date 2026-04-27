@@ -21,6 +21,8 @@ class ProfileUpdateRequest extends FormRequest
             ...$this->profileRules($this->user()->id),
             'phone' => ['nullable', 'string', 'max:20'],
             'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:2048'],
+            'duration' => ['nullable', 'integer', 'in:3,4,5,6'],
+            'intern_start' => ['nullable', 'date'],
         ];
     }
 }
