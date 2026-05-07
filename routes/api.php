@@ -9,7 +9,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware(['web', 'auth', 'verified', 'admin'])->group(function () {
-    Route::put('assessments/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
+    Route::put('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
         ->name('api.assessments.project-tasks.update');
     //  Route::get('assessments/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
     //     ->name('api.assessments.project-tasks.update');

@@ -647,7 +647,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-C7TMGyT4.js",
+    "file": "assets/app-bWeva2IL.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -967,7 +967,7 @@
     ]
   },
   "resources/js/pages/assesment/show.tsx": {
-    "file": "assets/show-xBJQI9Ex.js",
+    "file": "assets/show-BzbTKZeu.js",
     "name": "show",
     "src": "resources/js/pages/assesment/show.tsx",
     "isDynamicEntry": true,

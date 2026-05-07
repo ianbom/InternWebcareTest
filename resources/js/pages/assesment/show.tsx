@@ -206,7 +206,7 @@ export default function AssessmentShow({
 
         if (editingTask) {
             taskForm.put(
-                `/api/assessments/${assessment.id}/project-tasks/${editingTask.id}`,
+                `/api/bom/${assessment.id}/project-tasks/${editingTask.id}`,
                 options,
             );
 
