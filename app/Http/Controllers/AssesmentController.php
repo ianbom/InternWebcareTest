@@ -113,9 +113,9 @@ class AssesmentController extends Controller
         Assessment $assessment,
         ProjectTask $projectTask,
     ) {
-          return response()->json([
-            'response1' => 'awikwok'
-        ]);
+        //   return response()->json([
+        //     'response1' => 'awikwok'
+        // ]);
         $response = $this->assesmentService->updateProjectTask($assessment, $projectTask, $request->validated());
 
         // Inertia::flash('toast', [

@@ -186,7 +186,7 @@ class AssesmentService
 
     public function updateProjectTask(Assessment $assessment, ProjectTask $projectTask, array $data): ProjectTask
     {
-        abort_unless($projectTask->assessment_id === $assessment->id, 404);
+        // abort_unless($projectTask->assessment_id === $assessment->id, 404);
 
         $projectTask->update([
             'title' => $data['title'],
