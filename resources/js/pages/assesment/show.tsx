@@ -210,7 +210,7 @@ export default function AssessmentShow({
         if (editingTask) {
             taskForm.transform((data) => ({
                 ...data,
-                _method: 'put',
+                _method: 'post',
             }));
 
             taskForm.post(
