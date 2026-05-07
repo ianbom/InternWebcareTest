@@ -127,6 +127,11 @@ class AssesmentController extends Controller
         // return to_route('assessments.show', $assessment);
     }
 
+    public function tes()
+    {
+       return response()->json(['aoskdoskaod']);
+    }
+
     /**
      * Start/take an assessment - sets the application to in_progress
      * and redirects to the take-assesment page.

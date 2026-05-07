@@ -9,8 +9,11 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware(['web', 'auth', 'verified', 'admin'])->group(function () {
-    Route::put('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
+    Route::get('bimsillah', [AssesmentController::class, 'tes']);
+    Route::put('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'tes'])
         ->name('api.assessments.project-tasks.update');
-     Route::get('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
+    Route::get('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'tes'])
         ->name('api.assessments.project-tasks.update');
 });
+
+
