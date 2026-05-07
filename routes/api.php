@@ -8,7 +8,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+Route::middleware(['web', 'auth', 'verified', 'admin'])->group(function () {
     Route::put('assessments/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
         ->name('api.assessments.project-tasks.update');
 });
