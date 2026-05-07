@@ -208,20 +208,12 @@ export default function AssessmentShow({
         };
 
         if (editingTask) {
-            taskForm.transform((data) => ({
-                ...data,
-                _method: 'put',
-            }));
-
-            taskForm.post(
+            taskForm.put(
                 taskUpdate.url({
                     assessment: assessment.id,
                     projectTask: editingTask.id,
                 }),
-                {
-                    ...options,
-                    onFinish: () => taskForm.transform((data) => data),
-                },
+                options,
             );
 
             return;
