@@ -11,6 +11,6 @@ Route::get('/user', function (Request $request) {
 Route::middleware(['web', 'auth', 'verified', 'admin'])->group(function () {
     Route::put('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
         ->name('api.assessments.project-tasks.update');
-    //  Route::get('assessments/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
-    //     ->name('api.assessments.project-tasks.update');
+     Route::get('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
+        ->name('api.assessments.project-tasks.update');
 });
