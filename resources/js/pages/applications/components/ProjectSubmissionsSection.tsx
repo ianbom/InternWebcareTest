@@ -44,9 +44,9 @@ export function ProjectSubmissionsSection({
                                             {submission.task_title ?? '-'}
                                         </h3>
                                     </div>
-                                    <p className="mt-2 text-sm leading-6 text-[#526078]">
-                                        {submission.description ?? '-'}
-                                    </p>
+                                    <ProjectTaskDescription
+                                        description={submission.description}
+                                    />
                                     <div className="mt-3 grid gap-2 text-xs text-[#6B7894] md:grid-cols-2">
                                         <span>
                                             Deadline:{' '}
@@ -120,5 +120,28 @@ export function ProjectSubmissionsSection({
                 )}
             </div>
         </section>
+    );
+}
+
+function ProjectTaskDescription({
+    description,
+}: {
+    description: string | null;
+}) {
+    const lines = (description ?? '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+    if (lines.length === 0) {
+        return <p className="mt-2 text-sm leading-6 text-[#526078]">-</p>;
+    }
+
+    return (
+        <div className="mt-2 space-y-2 text-sm leading-6 text-[#526078]">
+            {lines.map((line, index) => (
+                <p key={`${line}-${index}`}>{line}</p>
+            ))}
+        </div>
     );
 }

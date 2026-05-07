@@ -657,7 +657,7 @@ export default function AssessmentShow({
                     open ? setTaskDialogOpen(true) : closeTaskDialog()
                 }
             >
-                <DialogContent className="max-w-2xl rounded-[28px]">
+                <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-[28px]">
                     <form onSubmit={submitTask} className="space-y-5">
                         <DialogHeader>
                             <DialogTitle className="text-2xl font-black text-[#102B5C]">

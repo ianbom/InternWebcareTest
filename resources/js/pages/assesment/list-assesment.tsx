@@ -166,7 +166,24 @@ function extractFileName(path: string | null): string | null {
     return segments[segments.length - 1] ?? path;
 }
 
+function ProjectTaskDescription({ description }: { description: string | null }) {
+    const lines = (description ?? '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
 
+    if (lines.length === 0) {
+        return <p className="mt-1 text-sm leading-relaxed text-gray-500">-</p>;
+    }
+
+    return (
+        <div className="mt-1 space-y-2 text-sm leading-relaxed text-gray-500">
+            {lines.map((line, index) => (
+                <p key={`${line}-${index}`}>{line}</p>
+            ))}
+        </div>
+    );
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -692,11 +709,11 @@ export default function ListAssesment({ hasApplication, application }: Props) {
                                                                                             }
                                                                                         </span>
                                                                                     </div>
-                                                                                    <p className="mt-1 text-sm leading-relaxed text-gray-500">
-                                                                                        {
+                                                                                    <ProjectTaskDescription
+                                                                                        description={
                                                                                             task.description
                                                                                         }
-                                                                                    </p>
+                                                                                    />
 
                                                                                     <div className="mt-4 grid gap-3 rounded-2xl border border-gray-200 bg-white p-4">
                                                                                         <div className="grid gap-1 text-xs text-gray-500 sm:grid-cols-2">
