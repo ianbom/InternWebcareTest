@@ -38,10 +38,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { FieldError } from '@/pages/shared/FieldError';
 import { list as assessmentsList } from '@/routes/assessments';
-import {
-    store as taskStore,
-    update as taskUpdate,
-} from '@/routes/assessments/project-tasks';
+import { store as taskStore } from '@/routes/assessments/project-tasks';
 import {
     store as questionStore,
     update as questionUpdate,
@@ -209,7 +206,7 @@ export default function AssessmentShow({
 
         if (editingTask) {
             taskForm.put(
-                `/assesments/${assessment.id}/project-tasks/${editingTask.id}`,
+                `/api/assessments/${assessment.id}/project-tasks/${editingTask.id}`,
                 options,
             );
 
