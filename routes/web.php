@@ -41,6 +41,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Route::post('assessments/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask']);
         Route::put('assessments/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
             ->name('assessments.project-tasks.update');
+        Route::put('assesments/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask'])
+            ->name('assesments.project-tasks.update');
     });
 
     Route::get('positions', [PositionController::class, 'index'])->name('positions.index');

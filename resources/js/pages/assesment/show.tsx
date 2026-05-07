@@ -209,10 +209,7 @@ export default function AssessmentShow({
 
         if (editingTask) {
             taskForm.put(
-                taskUpdate.url({
-                    assessment: assessment.id,
-                    projectTask: editingTask.id,
-                }),
+                `/assesments/${assessment.id}/project-tasks/${editingTask.id}`,
                 options,
             );
 
