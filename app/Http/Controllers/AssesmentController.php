@@ -108,7 +108,7 @@ class AssesmentController extends Controller
         return to_route('assessments.show', $assessment);
     }
 
-    public function updateProjectTask(
+    public function updateProjectTask2(
         UpdateProjectTaskRequest $request,
         Assessment $assessment,
         ProjectTask $projectTask,
