@@ -112,15 +112,19 @@ class AssesmentController extends Controller
         UpdateProjectTaskRequest $request,
         Assessment $assessment,
         ProjectTask $projectTask,
-    ): RedirectResponse {
-        $this->assesmentService->updateProjectTask($assessment, $projectTask, $request->validated());
+    ) {
+        $response = $this->assesmentService->updateProjectTask($assessment, $projectTask, $request->validated());
 
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => 'Project task berhasil diperbarui.',
         ]);
 
-        return to_route('assessments.show', $assessment);
+        return response()->json([
+            'response' => $response
+        ]);
+
+        // return to_route('assessments.show', $assessment);
     }
 
     /**
