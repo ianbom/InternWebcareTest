@@ -118,16 +118,16 @@ class AssesmentController extends Controller
         // ]);
         $response = $this->assesmentService->updateProjectTask($assessment, $projectTask, $request->validated());
 
-        // Inertia::flash('toast', [
-        //     'type' => 'success',
-        //     'message' => 'Project task berhasil diperbarui.',
-        // ]);
-
-        return response()->json([
-            'response' => $response
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Project task berhasil diperbarui.',
         ]);
 
-        // return to_route('assessments.show', $assessment);
+        // return response()->json([
+        //     'response' => $response
+        // ]);
+
+        return to_route('assessments.show', $assessment);
     }
 
     public function tes()
