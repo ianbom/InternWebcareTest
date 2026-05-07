@@ -211,7 +211,9 @@ export default function AssessmentShow({
             taskForm.transform((data) => ({
                 ...data,
                 _method: 'put',
-            })).post(
+            }));
+
+            taskForm.post(
                 taskUpdate.url({
                     assessment: assessment.id,
                     projectTask: editingTask.id,

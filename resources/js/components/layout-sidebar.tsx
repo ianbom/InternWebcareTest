@@ -47,31 +47,31 @@ function getSidebarItems(role?: User['role']): SidebarItem[] {
         return [
             {
                 title: 'Positions',
-                href: positionsIndex().url,
+                href: positionsIndex.url(),
                 activePaths: ['/positions'],
                 icon: BriefcaseBusiness,
             },
             {
                 title: 'Assessments',
-                href: assessmentsList().url,
+                href: assessmentsList.url(),
                 activePaths: ['/assessments'],
                 icon: ClipboardList,
             },
             {
                 title: 'Applications',
-                href: applicationsIndex().url,
+                href: applicationsIndex.url(),
                 activePaths: ['/applications'],
                 icon: PaperclipIcon,
             },
             {
                 title: 'Users',
-                href: usersIndex().url,
+                href: usersIndex.url(),
                 activePaths: ['/users'],
                 icon: UsersRound,
             },
             {
                 title: 'Profile',
-                href: profileEdit().url,
+                href: profileEdit.url(),
                 activePaths: ['/settings/profile', '/profile'],
                 icon: UserRound,
             },
@@ -81,25 +81,25 @@ function getSidebarItems(role?: User['role']): SidebarItem[] {
     return [
         {
             title: 'Dashboard',
-            href: dashboard().url,
+            href: dashboard.url(),
             activePaths: ['/dashboard'],
             icon: LayoutGrid,
         },
         {
             title: 'Posisi Magang',
-            href: positionsIndex().url,
+            href: positionsIndex.url(),
             activePaths: ['/positions'],
             icon: BriefcaseBusiness,
         },
         {
             title: 'Assesment',
-            href: assessmentsIndex().url,
+            href: assessmentsIndex.url(),
             activePaths: ['/my-assesment'],
             icon: PaperclipIcon,
         },
         {
             title: 'Profil',
-            href: profileEdit().url,
+            href: profileEdit.url(),
             activePaths: ['/settings/profile', '/profile'],
             icon: UserRound,
         },
