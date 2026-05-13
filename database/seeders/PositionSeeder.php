@@ -33,6 +33,11 @@ class PositionSeeder extends Seeder
                 'description' => 'Mengedit video promosi dan konten digital dengan menambahkan musik, transisi, dan subtitle. Menghasilkan video yang menarik dan profesional sesuai kebutuhan perusahaan.',
                 'is_active' => true,
             ],
+            [
+                'title' => 'WordPress Developer (Elementor)',
+                'description' => 'Membuat dan mengelola website WordPress menggunakan Elementor. Bertanggung jawab membangun landing page responsif, mengoptimasi layout, spacing, typography, dan menjaga performa website.',
+                'is_active' => true,
+            ],
         ];
 
         foreach ($positions as $position) {

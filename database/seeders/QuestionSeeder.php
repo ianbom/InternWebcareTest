@@ -149,6 +149,140 @@ class QuestionSeeder extends Seeder
                 ],
             ],
 
+            // ── WordPress Developer (Elementor) ───────────────────────────
+            'WordPress Developer (Elementor) Assessment' => [
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Fungsi utama Elementor pada WordPress adalah?',
+                    'options' => [
+                        'A' => 'Mengelola database',
+                        'B' => 'Membuat desain website secara visual',
+                        'C' => 'Mengamankan server',
+                        'D' => 'Mengatur domain',
+                    ],
+                    'correct_answer' => 'B',
+                    'point_value' => 10,
+                    'order_index' => 1,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Plugin yang umum digunakan untuk membuat toko online di WordPress adalah?',
+                    'options' => [
+                        'A' => 'Yoast SEO',
+                        'B' => 'Elementor',
+                        'C' => 'WooCommerce',
+                        'D' => 'Contact Form 7',
+                    ],
+                    'correct_answer' => 'C',
+                    'point_value' => 10,
+                    'order_index' => 2,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Apa tujuan website dibuat responsive?',
+                    'options' => [
+                        'A' => 'Agar loading lebih lambat',
+                        'B' => 'Agar website hanya tampil di desktop',
+                        'C' => 'Agar website dapat menyesuaikan berbagai ukuran layar',
+                        'D' => 'Agar warna website berubah otomatis',
+                    ],
+                    'correct_answer' => 'C',
+                    'point_value' => 10,
+                    'order_index' => 3,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Bahasa dasar yang digunakan untuk styling website adalah?',
+                    'options' => [
+                        'A' => 'PHP',
+                        'B' => 'CSS',
+                        'C' => 'SQL',
+                        'D' => 'Python',
+                    ],
+                    'correct_answer' => 'B',
+                    'point_value' => 10,
+                    'order_index' => 4,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Apa fungsi plugin pada WordPress?',
+                    'options' => [
+                        'A' => 'Menambah fitur website',
+                        'B' => 'Menghapus hosting',
+                        'C' => 'Mengatur monitor',
+                        'D' => 'Mengganti domain otomatis',
+                    ],
+                    'correct_answer' => 'A',
+                    'point_value' => 10,
+                    'order_index' => 5,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Elementor termasuk jenis tools?',
+                    'options' => [
+                        'A' => 'Database Manager',
+                        'B' => 'Visual Page Builder',
+                        'C' => 'Browser',
+                        'D' => 'Framework Backend',
+                    ],
+                    'correct_answer' => 'B',
+                    'point_value' => 10,
+                    'order_index' => 6,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Apa yang biasanya mempengaruhi kecepatan website?',
+                    'options' => [
+                        'A' => 'Ukuran gambar terlalu besar',
+                        'B' => 'Nama website',
+                        'C' => 'Warna tombol',
+                        'D' => 'Jumlah menu sedikit',
+                    ],
+                    'correct_answer' => 'A',
+                    'point_value' => 10,
+                    'order_index' => 7,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Fungsi section/container di Elementor adalah?',
+                    'options' => [
+                        'A' => 'Menyimpan database',
+                        'B' => 'Mengatur layout halaman',
+                        'C' => 'Menghapus plugin',
+                        'D' => 'Membuat hosting',
+                    ],
+                    'correct_answer' => 'B',
+                    'point_value' => 10,
+                    'order_index' => 8,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Apa tujuan maintenance website?',
+                    'options' => [
+                        'A' => 'Membuat website error',
+                        'B' => 'Menjaga performa dan keamanan website',
+                        'C' => 'Menghapus semua halaman',
+                        'D' => 'Mengurangi traffic website',
+                    ],
+                    'correct_answer' => 'B',
+                    'point_value' => 10,
+                    'order_index' => 9,
+                ],
+                [
+                    'type' => 'multiple_choice',
+                    'question_text' => 'Jika tampilan website berantakan di HP, maka yang perlu diperiksa adalah?',
+                    'options' => [
+                        'A' => 'Responsive setting',
+                        'B' => 'Nama domain',
+                        'C' => 'Username admin',
+                        'D' => 'Email website',
+                    ],
+                    'correct_answer' => 'A',
+                    'point_value' => 10,
+                    'order_index' => 10,
+                ],
+            ],
+
             // ── Back-End Developer ───────────────────────────────────────
             'Back-End Developer Assessment' => [
                 [

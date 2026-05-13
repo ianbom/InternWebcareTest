@@ -50,6 +50,15 @@ class ProjectTaskSeeder extends Seeder
                     'deadline_hours' => 72,
                 ],
             ],
+
+            // ── WordPress Developer (Elementor) ───────────────────────────
+            'WordPress Developer (Elementor) Assessment' => [
+                [
+                    'title' => 'Landing Page WordPress & Elementor - Perusahaan Konstruksi',
+                    'description' => "Buat 1 halaman landing page menggunakan WordPress & Elementor untuk sebuah perusahaan konstruksi.\n\nKetentuan:\n- Responsive desktop & mobile\n- Minimal terdiri dari Hero Section, Tentang Kami, Layanan, Portfolio/Testimoni, dan CTA / Contact Section\n- Menggunakan design yang rapi dan modern\n- Wajib menggunakan Elementor\n- Optimasi basic spacing, typography, dan layout\n\nHasil yang dikumpulkan:\n- Link website/demo\n- Screenshot tampilan desktop & mobile\n\nWaktu pengerjaan maksimal 2 hari",
+                    'deadline_hours' => 48,
+                ],
+            ],
         ];
 
         foreach ($projectTaskBlueprints as $assessmentTitle => $projectTasks) {

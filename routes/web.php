@@ -36,8 +36,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('assessments.questions.store');
         Route::put('assessments/{assessment}/questions/{question}', [AssesmentController::class, 'updateQuestion'])
             ->name('assessments.questions.update');
+        Route::delete('assessments/{assessment}/questions/{question}', [AssesmentController::class, 'destroyQuestion'])
+            ->name('assessments.questions.destroy');
         Route::post('assessments/{assessment}/project-tasks', [AssesmentController::class, 'storeProjectTask'])
             ->name('assessments.project-tasks.store');
+        Route::delete('assessments/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'destroyProjectTask'])
+            ->name('assessments.project-tasks.destroy');
     });
 
     Route::get('positions', [PositionController::class, 'index'])->name('positions.index');
