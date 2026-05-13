@@ -6,6 +6,7 @@ import {
     ListChecks,
     Plus,
     Timer,
+    Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
@@ -38,8 +39,12 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { FieldError } from '@/pages/shared/FieldError';
 import { list as assessmentsList } from '@/routes/assessments';
-import { store as taskStore } from '@/routes/assessments/project-tasks';
 import {
+    destroy as taskDestroy,
+    store as taskStore,
+} from '@/routes/assessments/project-tasks';
+import {
+    destroy as questionDestroy,
     store as questionStore,
     update as questionUpdate,
 } from '@/routes/assessments/questions';
@@ -91,6 +96,8 @@ export default function AssessmentShow({
 
     const questionForm = useForm<QuestionFormData>(EMPTY_QUESTION);
     const taskForm = useForm<ProjectTaskFormData>(EMPTY_TASK);
+    const deleteQuestionForm = useForm({});
+    const deleteTaskForm = useForm({});
     const questionErrors = questionForm.errors as Record<
         string,
         string | undefined
@@ -172,6 +179,20 @@ export default function AssessmentShow({
         questionForm.post(questionStore.url(assessment.id), options);
     };
 
+    const deleteQuestion = (question: AssessmentQuestion) => {
+        if (!window.confirm('Hapus question ini?')) {
+            return;
+        }
+
+        deleteQuestionForm.delete(
+            questionDestroy.url({
+                assessment: assessment.id,
+                question: question.id,
+            }),
+            { preserveScroll: true },
+        );
+    };
+
     const openCreateTask = () => {
         setEditingTask(null);
         taskForm.clearErrors();
@@ -214,6 +235,20 @@ export default function AssessmentShow({
         }
 
         taskForm.post(taskStore.url(assessment.id), options);
+    };
+
+    const deleteTask = (task: AssessmentProjectTask) => {
+        if (!window.confirm('Hapus project task ini?')) {
+            return;
+        }
+
+        deleteTaskForm.delete(
+            taskDestroy.url({
+                assessment: assessment.id,
+                projectTask: task.id,
+            }),
+            { preserveScroll: true },
+        );
     };
 
     return (
@@ -279,7 +314,8 @@ export default function AssessmentShow({
                                     </div>
                                 </div>
                                 <p className="text-xs leading-5 text-blue-100">
-                                    Updated {formatDateTime(assessment.updated_at)}
+                                    Updated{' '}
+                                    {formatDateTime(assessment.updated_at)}
                                 </p>
                             </div>
                         </div>
@@ -353,17 +389,35 @@ export default function AssessmentShow({
                                                     </div>
                                                 )}
                                             </div>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                onClick={() =>
-                                                    openEditQuestion(question)
-                                                }
-                                                className="rounded-full"
-                                            >
-                                                <Edit3 className="size-4" />
-                                                Edit
-                                            </Button>
+                                            <div className="flex flex-wrap gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        openEditQuestion(
+                                                            question,
+                                                        )
+                                                    }
+                                                    className="rounded-full"
+                                                >
+                                                    <Edit3 className="size-4" />
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        deleteQuestion(question)
+                                                    }
+                                                    disabled={
+                                                        deleteQuestionForm.processing
+                                                    }
+                                                    className="rounded-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                    Delete
+                                                </Button>
+                                            </div>
                                         </div>
                                     </article>
                                 ))}
@@ -414,17 +468,33 @@ export default function AssessmentShow({
                                                     {task.description}
                                                 </p>
                                             </div>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                onClick={() =>
-                                                    openEditTask(task)
-                                                }
-                                                className="rounded-full"
-                                            >
-                                                <Edit3 className="size-4" />
-                                                Edit
-                                            </Button>
+                                            <div className="flex flex-wrap gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        openEditTask(task)
+                                                    }
+                                                    className="rounded-full"
+                                                >
+                                                    <Edit3 className="size-4" />
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        deleteTask(task)
+                                                    }
+                                                    disabled={
+                                                        deleteTaskForm.processing
+                                                    }
+                                                    className="rounded-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                    Delete
+                                                </Button>
+                                            </div>
                                         </div>
                                     </article>
                                 ))}

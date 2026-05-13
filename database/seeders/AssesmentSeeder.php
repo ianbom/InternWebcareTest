@@ -26,6 +26,9 @@ class AssesmentSeeder extends Seeder
             'Video Editor' => [
                 ['title' => 'Video Editor Assessment', 'duration_minutes' => 45],
             ],
+            'WordPress Developer (Elementor)' => [
+                ['title' => 'WordPress Developer (Elementor) Assessment', 'duration_minutes' => 45],
+            ],
         ];
 
         foreach ($assessmentBlueprints as $positionTitle => $assessments) {

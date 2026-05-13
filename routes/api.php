@@ -12,8 +12,4 @@ Route::middleware(['web', 'auth', 'verified', 'admin'])->group(function () {
     Route::get('bimsillah', [AssesmentController::class, 'tes']);
     Route::put('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'updateProjectTask2'])
         ->name('api.assessments.project-tasks.update');
-    Route::get('bom/{assessment}/project-tasks/{projectTask}', [AssesmentController::class, 'tes'])
-        ->name('api.assessments.project-tasks.update');
 });
-
-

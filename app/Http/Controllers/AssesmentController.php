@@ -96,6 +96,18 @@ class AssesmentController extends Controller
         return to_route('assessments.show', $assessment);
     }
 
+    public function destroyQuestion(Assessment $assessment, Question $question): RedirectResponse
+    {
+        $this->assesmentService->deleteQuestion($assessment, $question);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Question berhasil dihapus.',
+        ]);
+
+        return to_route('assessments.show', $assessment);
+    }
+
     public function storeProjectTask(StoreProjectTaskRequest $request, Assessment $assessment): RedirectResponse
     {
         $this->assesmentService->createProjectTask($assessment, $request->validated());
@@ -130,9 +142,21 @@ class AssesmentController extends Controller
         return to_route('assessments.show', $assessment);
     }
 
+    public function destroyProjectTask(Assessment $assessment, ProjectTask $projectTask): RedirectResponse
+    {
+        $this->assesmentService->deleteProjectTask($assessment, $projectTask);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Project task berhasil dihapus.',
+        ]);
+
+        return to_route('assessments.show', $assessment);
+    }
+
     public function tes()
     {
-       return response()->json(['aoskdoskaod']);
+        return response()->json(['aoskdoskaod']);
     }
 
     /**

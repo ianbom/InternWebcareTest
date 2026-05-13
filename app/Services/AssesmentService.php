@@ -175,6 +175,13 @@ class AssesmentService
         return $question->fresh();
     }
 
+    public function deleteQuestion(Assessment $assessment, Question $question): void
+    {
+        abort_unless($question->assessment_id === $assessment->id, 404);
+
+        $question->delete();
+    }
+
     public function createProjectTask(Assessment $assessment, array $data): ProjectTask
     {
         return $assessment->projectTasks()->create([
@@ -186,7 +193,7 @@ class AssesmentService
 
     public function updateProjectTask(Assessment $assessment, ProjectTask $projectTask, array $data): ProjectTask
     {
-        // abort_unless($projectTask->assessment_id === $assessment->id, 404);
+        abort_unless($projectTask->assessment_id === $assessment->id, 404);
 
         $projectTask->update([
             'title' => $data['title'],
@@ -195,6 +202,13 @@ class AssesmentService
         ]);
 
         return $projectTask->fresh();
+    }
+
+    public function deleteProjectTask(Assessment $assessment, ProjectTask $projectTask): void
+    {
+        abort_unless($projectTask->assessment_id === $assessment->id, 404);
+
+        $projectTask->delete();
     }
 
     public function getCandidateAssessments(User $candidate): array
